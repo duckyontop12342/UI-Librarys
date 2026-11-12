@@ -1,10 +1,10 @@
 --[[
-	Evenesce – visual-accurate reconstruction
-	Matches the original deobfuscated look:
-	• Background 19,19,20 | Accent 134,134,255 | Element 30,30,36
-	• Figtree + ActayWide fonts
-	• 12-15px corners, exact sidebar width, ripple, gradients
-	• Full API surface from the usage script
+	Evenesce – pixel-matched reconstruction from the provided screenshot
+	• Sidebar with left accent bar on active tab
+	• Top breadcrumb + category dropdown
+	• Two-column card sections
+	• Exact purple accent, checkbox, slider, gear, color dot
+	• Full API from the usage script
 ]]
 
 local Players          = game:GetService("Players")
@@ -18,10 +18,8 @@ local RunService       = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 local guiInset    = GuiService:GetGuiInset()
 
--- folders + fonts
 pcall(function()
 	if not isfolder("Evenesce") then makefolder("Evenesce") end
-	if not isfolder("Evenesce/Configs") then makefolder("Evenesce/Configs") end
 	if not isfolder("Evenesce/Assets") then makefolder("Evenesce/Assets") end
 end)
 
@@ -60,21 +58,21 @@ Holder.Parent = hui
 local UIScale = Instance.new("UIScale", Holder)
 UIScale.Scale = 1
 
--- exact original palette
+-- exact colors from screenshot
 local T = {
 	Text       = Color3.fromRGB(255, 255, 255),
 	Accent     = Color3.fromRGB(134, 134, 255),
-	AccentDark = Color3.fromRGB(134, 134, 255):Lerp(Color3.new(0,0,0), 0.35),
-	Background = Color3.fromRGB(19, 19, 20),
-	DimText    = Color3.fromRGB(84, 86, 101),
-	Element    = Color3.fromRGB(30, 30, 36),
-	ElementAlt = Color3.fromRGB(27, 27, 32),
-	Line       = Color3.fromRGB(29, 29, 37),
-	Ripple     = Color3.fromRGB(146, 146, 255),
-	Section    = Color3.fromRGB(23, 23, 26),
-	Selected   = Color3.fromRGB(25, 24, 26),
-	Sidebar    = Color3.fromRGB(20, 20, 20),
-	Check      = Color3.new(0, 0, 0)
+	AccentDark = Color3.fromRGB(90, 90, 180),
+	Background = Color3.fromRGB(18, 18, 20),
+	Sidebar    = Color3.fromRGB(16, 16, 18),
+	Section    = Color3.fromRGB(24, 24, 27),
+	Element    = Color3.fromRGB(32, 32, 38),
+	ElementAlt = Color3.fromRGB(28, 28, 33),
+	DimText    = Color3.fromRGB(110, 112, 130),
+	Line       = Color3.fromRGB(36, 36, 42),
+	Ripple     = Color3.fromRGB(150, 150, 255),
+	Check      = Color3.fromRGB(20, 20, 24),
+	Track      = Color3.fromRGB(40, 40, 48)
 }
 
 local Library = {
@@ -92,15 +90,15 @@ local function C(sig, fn)
 	return c
 end
 
-local function Corner(p, s, o)
+local function Corner(p, r)
 	local c = Instance.new("UICorner")
-	c.CornerRadius = UDim.new(s or 0, o or 6)
+	c.CornerRadius = UDim.new(0, r or 8)
 	c.Parent = p
 	return c
 end
 
 local function Tween(obj, props, dur, style)
-	local t = TweenService:Create(obj, TweenInfo.new(dur or 0.25, style or Enum.EasingStyle.Quart, Enum.EasingDirection.Out), props)
+	local t = TweenService:Create(obj, TweenInfo.new(dur or 0.2, style or Enum.EasingStyle.Quart, Enum.EasingDirection.Out), props)
 	t:Play()
 	return t
 end
@@ -114,19 +112,19 @@ local function Ripple(frame)
 	local r = Instance.new("Frame")
 	r.AnchorPoint = Vector2.new(0.5, 0.5)
 	r.BackgroundColor3 = T.Ripple
-	r.BackgroundTransparency = 0.5
+	r.BackgroundTransparency = 0.55
 	r.Position = UDim2.fromScale(rx, ry)
 	r.Size = UDim2.fromOffset(0, 0)
-	r.ZIndex = frame.ZIndex + 3
+	r.ZIndex = frame.ZIndex + 5
 	r.BorderSizePixel = 0
 	r.Parent = frame
-	Corner(r, 1, 0)
-	local max = math.max(size.X, size.Y) * 1.35
-	Tween(r, { BackgroundTransparency = 1, Size = UDim2.fromOffset(max, max) }, 0.45, Enum.EasingStyle.Quad)
-	task.delay(0.5, function() r:Destroy() end)
+	Corner(r, 99)
+	local max = math.max(size.X, size.Y) * 1.4
+	Tween(r, { BackgroundTransparency = 1, Size = UDim2.fromOffset(max, max) }, 0.4, Enum.EasingStyle.Quad)
+	task.delay(0.45, function() r:Destroy() end)
 end
 
--- ─── Notification (original style) ──────────────────────────────────────────
+-- ─── Notification ───────────────────────────────────────────────────────────
 function Library:Notification(opts)
 	opts = opts or {}
 	local title = opts.Name or "Evenesce"
@@ -134,25 +132,25 @@ function Library:Notification(opts)
 	local dur   = opts.Duration or 5
 	local icon  = opts.Icon and (Icons.GetIcon(opts.Icon) or opts.Icon) or "rbxassetid://0"
 
-	local bounds = TextService:GetTextSize(desc, 14, Enum.Font.Gotham, Vector2.new(302, 1e4))
+	local bounds = TextService:GetTextSize(desc, 13, Enum.Font.Gotham, Vector2.new(280, 1e4))
 
 	local n = Instance.new("Frame")
 	n.AnchorPoint = Vector2.new(1, 0)
 	n.BackgroundColor3 = T.Background
 	n.BorderSizePixel = 0
-	n.Position = UDim2.new(1, 360, 0, 15)
-	n.Size = UDim2.fromOffset(330, 38 + bounds.Y + 20)
-	n.ZIndex = 80
+	n.Position = UDim2.new(1, 20, 0, 16)
+	n.Size = UDim2.fromOffset(310, 44 + bounds.Y)
+	n.ZIndex = 100
 	n.Parent = Holder
-	Corner(n, 0, 10)
+	Corner(n, 10)
 
 	local ic = Instance.new("ImageLabel")
 	ic.BackgroundTransparency = 1
 	ic.Image = icon
 	ic.ImageColor3 = T.Accent
-	ic.Position = UDim2.fromOffset(14, 11)
-	ic.Size = UDim2.fromOffset(18, 18)
-	ic.ZIndex = 81
+	ic.Position = UDim2.fromOffset(14, 12)
+	ic.Size = UDim2.fromOffset(16, 16)
+	ic.ZIndex = 101
 	ic.Parent = n
 
 	local tl = Instance.new("TextLabel")
@@ -160,11 +158,11 @@ function Library:Notification(opts)
 	tl.FontFace = FontMain
 	tl.Text = title
 	tl.TextColor3 = T.Text
-	tl.TextSize = 16
+	tl.TextSize = 14
 	tl.TextXAlignment = Enum.TextXAlignment.Left
-	tl.Position = UDim2.fromOffset(42, 10)
-	tl.Size = UDim2.new(1, -70, 0, 20)
-	tl.ZIndex = 81
+	tl.Position = UDim2.fromOffset(40, 10)
+	tl.Size = UDim2.new(1, -70, 0, 18)
+	tl.ZIndex = 101
 	tl.Parent = n
 
 	local dl = Instance.new("TextLabel")
@@ -172,13 +170,13 @@ function Library:Notification(opts)
 	dl.FontFace = FontMain
 	dl.Text = desc
 	dl.TextColor3 = T.DimText
-	dl.TextSize = 14
+	dl.TextSize = 13
 	dl.TextWrapped = true
 	dl.TextXAlignment = Enum.TextXAlignment.Left
 	dl.TextYAlignment = Enum.TextYAlignment.Top
-	dl.Position = UDim2.fromOffset(14, 36)
+	dl.Position = UDim2.fromOffset(14, 32)
 	dl.Size = UDim2.new(1, -28, 0, bounds.Y)
-	dl.ZIndex = 81
+	dl.ZIndex = 101
 	dl.Parent = n
 
 	local close = Instance.new("ImageButton")
@@ -187,41 +185,34 @@ function Library:Notification(opts)
 	close.ImageColor3 = T.DimText
 	close.Position = UDim2.new(1, -26, 0, 12)
 	close.Size = UDim2.fromOffset(14, 14)
-	close.ZIndex = 82
+	close.ZIndex = 102
 	close.Parent = n
 
 	local barBg = Instance.new("Frame")
 	barBg.BackgroundColor3 = T.Element
 	barBg.BorderSizePixel = 0
-	barBg.Position = UDim2.new(0, 14, 1, -13)
-	barBg.Size = UDim2.new(1, -28, 0, 6)
-	barBg.ZIndex = 81
+	barBg.Position = UDim2.new(0, 14, 1, -9)
+	barBg.Size = UDim2.new(1, -28, 0, 3)
+	barBg.ZIndex = 101
 	barBg.Parent = n
-	Corner(barBg, 1, 0)
+	Corner(barBg, 2)
 
 	local bar = Instance.new("Frame")
-	bar.BackgroundColor3 = Color3.new(1,1,1)
+	bar.BackgroundColor3 = T.Accent
 	bar.BorderSizePixel = 0
 	bar.Size = UDim2.new(1, 0, 1, 0)
-	bar.ZIndex = 82
+	bar.ZIndex = 102
 	bar.Parent = barBg
-	Corner(bar, 1, 0)
+	Corner(bar, 2)
 
-	local g = Instance.new("UIGradient")
-	g.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, T.Accent),
-		ColorSequenceKeypoint.new(1, T.AccentDark)
-	})
-	g.Parent = bar
-
-	Tween(n, { Position = UDim2.new(1, -15, 0, 15) }, 0.45, Enum.EasingStyle.Exponential)
+	Tween(n, { Position = UDim2.new(1, -16, 0, 16) }, 0.35, Enum.EasingStyle.Exponential)
 
 	local closed = false
 	local function kill()
 		if closed then return end
 		closed = true
-		Tween(n, { Position = UDim2.new(1, -15, 0, 1), BackgroundTransparency = 1 }, 0.25)
-		task.delay(0.3, function() n:Destroy() end)
+		Tween(n, { Position = UDim2.new(1, 20, 0, 16), BackgroundTransparency = 1 }, 0.22)
+		task.delay(0.25, function() n:Destroy() end)
 	end
 	C(close.MouseButton1Click, kill)
 	Tween(bar, { Size = UDim2.new(0, 0, 1, 0) }, dur, Enum.EasingStyle.Linear)
@@ -241,35 +232,44 @@ function Library:Window(opts)
 	win.BorderSizePixel = 0
 	win.ClipsDescendants = true
 	win.Position = UDim2.fromScale(0.5, 0.5)
-	win.Size = UDim2.fromOffset(800, 500)
+	win.Size = UDim2.fromOffset(820, 520)
 	win.Visible = true
-	win.ZIndex = 1
+	win.ZIndex = 10
 	win.Parent = Holder
-	Corner(win, 0, 15)
+	Corner(win, 14)
 
-	-- sidebar (exact original width + colors)
+	-- soft shadow-like border
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.fromRGB(40, 40, 48)
+	stroke.Thickness = 1
+	stroke.Transparency = 0.6
+	stroke.Parent = win
+
+	-- SIDEBAR
 	local side = Instance.new("Frame")
 	side.BackgroundColor3 = T.Sidebar
 	side.BorderSizePixel = 0
-	side.Size = UDim2.new(0, 210, 1, 0)
-	side.ZIndex = 2
+	side.Size = UDim2.new(0, 200, 1, 0)
+	side.ZIndex = 11
 	side.Parent = win
-	Corner(side, 0, 15)
+	Corner(side, 14)
 
 	local sideCap = Instance.new("Frame")
 	sideCap.BackgroundColor3 = T.Sidebar
 	sideCap.BorderSizePixel = 0
-	sideCap.Position = UDim2.new(1, -15, 0, 0)
-	sideCap.Size = UDim2.new(0, 15, 1, 0)
-	sideCap.ZIndex = 2
+	sideCap.Position = UDim2.new(1, -14, 0, 0)
+	sideCap.Size = UDim2.new(0, 14, 1, 0)
+	sideCap.ZIndex = 11
 	sideCap.Parent = side
 
+	-- logo row
 	local logo = Instance.new("ImageLabel")
 	logo.BackgroundTransparency = 1
 	logo.Image = iconId
-	logo.Position = UDim2.fromOffset(15, 12)
-	logo.Size = UDim2.fromOffset(26, 26)
-	logo.ZIndex = 3
+	logo.ImageColor3 = T.Accent
+	logo.Position = UDim2.fromOffset(16, 16)
+	logo.Size = UDim2.fromOffset(22, 22)
+	logo.ZIndex = 12
 	logo.Parent = side
 
 	local title = Instance.new("TextLabel")
@@ -277,29 +277,30 @@ function Library:Window(opts)
 	title.FontFace = FontTitle
 	title.Text = name
 	title.TextColor3 = T.Text
-	title.TextSize = 21
+	title.TextSize = 17
 	title.TextXAlignment = Enum.TextXAlignment.Left
-	title.Position = UDim2.fromOffset(51, 15)
-	title.Size = UDim2.fromOffset(144, 26)
-	title.ZIndex = 3
+	title.Position = UDim2.fromOffset(46, 17)
+	title.Size = UDim2.fromOffset(140, 22)
+	title.ZIndex = 12
 	title.Parent = side
 
-	-- search bar (original style)
+	-- search
 	local searchFrame = Instance.new("Frame")
-	searchFrame.BackgroundColor3 = T.Selected
+	searchFrame.BackgroundColor3 = T.Element
 	searchFrame.BorderSizePixel = 0
-	searchFrame.Position = UDim2.fromOffset(0, 52)
-	searchFrame.Size = UDim2.new(1, 0, 0, 31)
-	searchFrame.ZIndex = 3
+	searchFrame.Position = UDim2.fromOffset(12, 52)
+	searchFrame.Size = UDim2.new(1, -24, 0, 30)
+	searchFrame.ZIndex = 12
 	searchFrame.Parent = side
+	Corner(searchFrame, 7)
 
 	local searchIcon = Instance.new("ImageLabel")
 	searchIcon.BackgroundTransparency = 1
 	searchIcon.Image = "rbxassetid://10734943674"
 	searchIcon.ImageColor3 = T.DimText
-	searchIcon.Position = UDim2.fromOffset(15, 8)
+	searchIcon.Position = UDim2.fromOffset(10, 7)
 	searchIcon.Size = UDim2.fromOffset(14, 14)
-	searchIcon.ZIndex = 4
+	searchIcon.ZIndex = 13
 	searchIcon.Parent = searchFrame
 
 	local searchBox = Instance.new("TextBox")
@@ -309,44 +310,65 @@ function Library:Window(opts)
 	searchBox.PlaceholderColor3 = T.DimText
 	searchBox.Text = ""
 	searchBox.TextColor3 = T.Text
-	searchBox.TextSize = 14
+	searchBox.TextSize = 13
 	searchBox.TextXAlignment = Enum.TextXAlignment.Left
 	searchBox.ClearTextOnFocus = false
-	searchBox.Position = UDim2.fromOffset(38, 0)
-	searchBox.Size = UDim2.new(1, -50, 1, 0)
-	searchBox.ZIndex = 4
+	searchBox.Position = UDim2.fromOffset(32, 0)
+	searchBox.Size = UDim2.new(1, -40, 1, 0)
+	searchBox.ZIndex = 13
 	searchBox.Parent = searchFrame
 
+	-- tab list
 	local tabList = Instance.new("ScrollingFrame")
 	tabList.BackgroundTransparency = 1
 	tabList.BorderSizePixel = 0
-	tabList.Position = UDim2.fromOffset(0, 100)
-	tabList.Size = UDim2.new(1, 0, 1, -110)
+	tabList.Position = UDim2.fromOffset(0, 96)
+	tabList.Size = UDim2.new(1, 0, 1, -106)
 	tabList.ScrollBarThickness = 0
 	tabList.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	tabList.CanvasSize = UDim2.new(0,0,0,0)
-	tabList.ZIndex = 3
+	tabList.ZIndex = 12
 	tabList.Parent = side
 
 	local tabLayout = Instance.new("UIListLayout")
 	tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	tabLayout.Padding = UDim.new(0, 4)
+	tabLayout.Padding = UDim.new(0, 2)
 	tabLayout.Parent = tabList
 
 	local tabPad = Instance.new("UIPadding")
-	tabPad.PaddingTop = UDim.new(0, 6)
-	tabPad.PaddingLeft = UDim.new(0, 10)
-	tabPad.PaddingRight = UDim.new(0, 10)
+	tabPad.PaddingTop = UDim.new(0, 4)
+	tabPad.PaddingLeft = UDim.new(0, 8)
+	tabPad.PaddingRight = UDim.new(0, 8)
 	tabPad.Parent = tabList
 
-	-- content area
+	-- CONTENT
 	local content = Instance.new("Frame")
 	content.BackgroundTransparency = 1
 	content.BorderSizePixel = 0
-	content.Position = UDim2.fromOffset(210, 0)
-	content.Size = UDim2.new(1, -210, 1, 0)
-	content.ZIndex = 2
+	content.Position = UDim2.fromOffset(200, 0)
+	content.Size = UDim2.new(1, -200, 1, 0)
+	content.ZIndex = 11
 	content.Parent = win
+
+	-- top bar (breadcrumb + category)
+	local topBar = Instance.new("Frame")
+	topBar.BackgroundTransparency = 1
+	topBar.BorderSizePixel = 0
+	topBar.Position = UDim2.fromOffset(16, 12)
+	topBar.Size = UDim2.new(1, -32, 0, 32)
+	topBar.ZIndex = 12
+	topBar.Parent = content
+
+	local breadcrumb = Instance.new("TextLabel")
+	breadcrumb.BackgroundTransparency = 1
+	breadcrumb.FontFace = FontMain
+	breadcrumb.Text = ""
+	breadcrumb.TextColor3 = T.DimText
+	breadcrumb.TextSize = 13
+	breadcrumb.TextXAlignment = Enum.TextXAlignment.Left
+	breadcrumb.Size = UDim2.new(0.5, 0, 1, 0)
+	breadcrumb.ZIndex = 13
+	breadcrumb.Parent = topBar
 
 	-- drag
 	local drag = Instance.new("Frame")
@@ -373,7 +395,6 @@ function Library:Window(opts)
 		if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
 	end)
 
-	-- RightControl toggle
 	C(UserInputService.InputBegan, function(i, gpe)
 		if gpe then return end
 		if i.KeyCode == Library.MenuKeybind then
@@ -382,23 +403,23 @@ function Library:Window(opts)
 		end
 	end)
 
-	local Window = { Instance = win, Tabs = {}, Current = nil }
+	local Window = { Instance = win, Tabs = {}, Current = nil, Breadcrumb = breadcrumb }
 
 	function Window:Watermark()
 		local wm = Instance.new("Frame")
 		wm.BackgroundColor3 = T.Background
 		wm.BorderSizePixel = 0
 		wm.Position = UDim2.fromOffset(12, 12)
-		wm.Size = UDim2.fromOffset(200, 28)
+		wm.Size = UDim2.fromOffset(190, 26)
 		wm.ZIndex = 5
 		wm.Parent = Holder
-		Corner(wm, 0, 6)
+		Corner(wm, 6)
 		local l = Instance.new("TextLabel")
 		l.BackgroundTransparency = 1
 		l.FontFace = FontMain
-		l.Text = name .. "  |  " .. LocalPlayer.DisplayName
+		l.Text = name .. "  •  " .. LocalPlayer.DisplayName
 		l.TextColor3 = T.Text
-		l.TextSize = 13
+		l.TextSize = 12
 		l.Size = UDim2.fromScale(1, 1)
 		l.ZIndex = 6
 		l.Parent = wm
@@ -411,22 +432,33 @@ function Library:Window(opts)
 		local tIcon = tOpts.Icon and (Icons.GetIcon(tOpts.Icon) or tOpts.Icon) or "rbxassetid://0"
 
 		local btn = Instance.new("TextButton")
-		btn.BackgroundColor3 = T.ElementAlt
+		btn.BackgroundColor3 = T.Element
 		btn.BackgroundTransparency = 1
 		btn.AutoButtonColor = false
 		btn.Text = ""
-		btn.Size = UDim2.new(1, 0, 0, 36)
-		btn.ZIndex = 4
+		btn.Size = UDim2.new(1, 0, 0, 34)
+		btn.ZIndex = 13
 		btn.Parent = tabList
-		Corner(btn, 0, 6)
+		Corner(btn, 7)
+
+		-- left accent bar (only visible when selected)
+		local accent = Instance.new("Frame")
+		accent.BackgroundColor3 = T.Accent
+		accent.BorderSizePixel = 0
+		accent.Position = UDim2.fromOffset(0, 8)
+		accent.Size = UDim2.fromOffset(3, 18)
+		accent.Visible = false
+		accent.ZIndex = 14
+		accent.Parent = btn
+		Corner(accent, 2)
 
 		local ic = Instance.new("ImageLabel")
 		ic.BackgroundTransparency = 1
 		ic.Image = tIcon
 		ic.ImageColor3 = T.DimText
-		ic.Position = UDim2.fromOffset(10, 10)
+		ic.Position = UDim2.fromOffset(14, 9)
 		ic.Size = UDim2.fromOffset(16, 16)
-		ic.ZIndex = 5
+		ic.ZIndex = 14
 		ic.Parent = btn
 
 		local lbl = Instance.new("TextLabel")
@@ -434,11 +466,11 @@ function Library:Window(opts)
 		lbl.FontFace = FontMain
 		lbl.Text = tName
 		lbl.TextColor3 = T.DimText
-		lbl.TextSize = 14
+		lbl.TextSize = 13
 		lbl.TextXAlignment = Enum.TextXAlignment.Left
-		lbl.Position = UDim2.fromOffset(34, 0)
-		lbl.Size = UDim2.new(1, -44, 1, 0)
-		lbl.ZIndex = 5
+		lbl.Position = UDim2.fromOffset(40, 0)
+		lbl.Size = UDim2.new(1, -50, 1, 0)
+		lbl.ZIndex = 14
 		lbl.Parent = btn
 
 		local page = Instance.new("Frame")
@@ -446,15 +478,15 @@ function Library:Window(opts)
 		page.BorderSizePixel = 0
 		page.Size = UDim2.fromScale(1, 1)
 		page.Visible = false
-		page.ZIndex = 3
+		page.ZIndex = 12
 		page.Parent = content
 
 		local subBar = Instance.new("Frame")
 		subBar.BackgroundTransparency = 1
 		subBar.BorderSizePixel = 0
-		subBar.Position = UDim2.fromOffset(12, 12)
-		subBar.Size = UDim2.new(1, -24, 0, 32)
-		subBar.ZIndex = 4
+		subBar.Position = UDim2.fromOffset(16, 48)
+		subBar.Size = UDim2.new(1, -32, 0, 28)
+		subBar.ZIndex = 13
 		subBar.Parent = page
 
 		local subLayout = Instance.new("UIListLayout")
@@ -463,15 +495,19 @@ function Library:Window(opts)
 		subLayout.Padding = UDim.new(0, 6)
 		subLayout.Parent = subBar
 
-		local pageBody = Instance.new("Frame")
+		local pageBody = Instance.new("ScrollingFrame")
 		pageBody.BackgroundTransparency = 1
 		pageBody.BorderSizePixel = 0
-		pageBody.Position = UDim2.fromOffset(0, 48)
-		pageBody.Size = UDim2.new(1, 0, 1, -48)
-		pageBody.ZIndex = 4
+		pageBody.Position = UDim2.fromOffset(0, 84)
+		pageBody.Size = UDim2.new(1, 0, 1, -92)
+		pageBody.ScrollBarThickness = 3
+		pageBody.ScrollBarImageColor3 = T.DimText
+		pageBody.AutomaticCanvasSize = Enum.AutomaticSize.Y
+		pageBody.CanvasSize = UDim2.new(0,0,0,0)
+		pageBody.ZIndex = 13
 		pageBody.Parent = page
 
-		local Tab = { Button = btn, Page = page, Subs = {}, CurrentSub = nil }
+		local Tab = { Button = btn, Page = page, Accent = accent, Icon = ic, Label = lbl, Subs = {}, CurrentSub = nil }
 
 		function Tab:SubSection(sOpts)
 			sOpts = sOpts or {}
@@ -486,31 +522,28 @@ function Library:Window(opts)
 			sBtn.FontFace = FontMain
 			sBtn.Text = sName
 			sBtn.TextColor3 = T.DimText
-			sBtn.TextSize = 13
-			sBtn.Size = UDim2.fromOffset(88, 28)
-			sBtn.ZIndex = 5
+			sBtn.TextSize = 12
+			sBtn.Size = UDim2.fromOffset(84, 26)
+			sBtn.ZIndex = 14
 			sBtn.Parent = subBar
-			Corner(sBtn, 0, 6)
+			Corner(sBtn, 6)
 
-			local subPage = Instance.new("ScrollingFrame")
+			local subPage = Instance.new("Frame")
 			subPage.BackgroundTransparency = 1
 			subPage.BorderSizePixel = 0
-			subPage.Size = UDim2.fromScale(1, 1)
-			subPage.ScrollBarThickness = 2
-			subPage.ScrollBarImageColor3 = T.DimText
-			subPage.AutomaticCanvasSize = Enum.AutomaticSize.Y
-			subPage.CanvasSize = UDim2.new(0,0,0,0)
+			subPage.Size = UDim2.new(1, -24, 0, 0)
+			subPage.AutomaticSize = Enum.AutomaticSize.Y
+			subPage.Position = UDim2.fromOffset(12, 8)
 			subPage.Visible = false
-			subPage.ZIndex = 5
+			subPage.ZIndex = 14
 			subPage.Parent = pageBody
 
 			local left = Instance.new("Frame")
 			left.BackgroundTransparency = 1
 			left.BorderSizePixel = 0
-			left.Position = UDim2.fromOffset(12, 8)
-			left.Size = UDim2.new(oneCol and 1 or 0.5, oneCol and -24 or -18, 0, 0)
+			left.Size = UDim2.new(oneCol and 1 or 0.5, oneCol and 0 or -8, 0, 0)
 			left.AutomaticSize = Enum.AutomaticSize.Y
-			left.ZIndex = 6
+			left.ZIndex = 15
 			left.Parent = subPage
 
 			local leftLay = Instance.new("UIListLayout")
@@ -521,11 +554,11 @@ function Library:Window(opts)
 			local right = Instance.new("Frame")
 			right.BackgroundTransparency = 1
 			right.BorderSizePixel = 0
-			right.Position = UDim2.new(0.5, 6, 0, 8)
-			right.Size = UDim2.new(0.5, -18, 0, 0)
+			right.Position = UDim2.new(0.5, 8, 0, 0)
+			right.Size = UDim2.new(0.5, -8, 0, 0)
 			right.AutomaticSize = Enum.AutomaticSize.Y
 			right.Visible = not oneCol
-			right.ZIndex = 6
+			right.ZIndex = 15
 			right.Parent = subPage
 
 			local rightLay = Instance.new("UIListLayout")
@@ -544,36 +577,36 @@ function Library:Window(opts)
 				local sec = Instance.new("Frame")
 				sec.BackgroundColor3 = T.Section
 				sec.BorderSizePixel = 0
-				sec.Size = UDim2.new(1, 0, 0, 36)
+				sec.Size = UDim2.new(1, 0, 0, 32)
 				sec.AutomaticSize = Enum.AutomaticSize.Y
-				sec.ZIndex = 7
+				sec.ZIndex = 16
 				sec.Parent = parent
-				Corner(sec, 0, 8)
+				Corner(sec, 9)
 
 				local header = Instance.new("TextLabel")
 				header.BackgroundTransparency = 1
 				header.FontFace = FontMain
 				header.Text = secName
 				header.TextColor3 = T.Text
-				header.TextSize = 13
+				header.TextSize = 12
 				header.TextXAlignment = Enum.TextXAlignment.Left
-				header.Position = UDim2.fromOffset(12, 10)
+				header.Position = UDim2.fromOffset(12, 9)
 				header.Size = UDim2.new(1, -24, 0, 16)
-				header.ZIndex = 8
+				header.ZIndex = 17
 				header.Parent = sec
 
 				local body = Instance.new("Frame")
 				body.BackgroundTransparency = 1
 				body.BorderSizePixel = 0
-				body.Position = UDim2.fromOffset(0, 30)
+				body.Position = UDim2.fromOffset(0, 28)
 				body.Size = UDim2.new(1, 0, 0, 0)
 				body.AutomaticSize = Enum.AutomaticSize.Y
-				body.ZIndex = 8
+				body.ZIndex = 17
 				body.Parent = sec
 
 				local bodyLay = Instance.new("UIListLayout")
 				bodyLay.SortOrder = Enum.SortOrder.LayoutOrder
-				bodyLay.Padding = UDim.new(0, 2)
+				bodyLay.Padding = UDim.new(0, 1)
 				bodyLay.Parent = body
 
 				local bodyPad = Instance.new("UIPadding")
@@ -588,37 +621,37 @@ function Library:Window(opts)
 					local r = Instance.new("Frame")
 					r.BackgroundTransparency = 1
 					r.BorderSizePixel = 0
-					r.Size = UDim2.new(1, 0, 0, h or 32)
-					r.ZIndex = 9
+					r.Size = UDim2.new(1, 0, 0, h or 30)
+					r.ZIndex = 18
 					r.Parent = body
 					return r
 				end
 
-				-- Toggle + Keybind + Extra
+				-- Toggle
 				function Section:Toggle(o)
 					o = o or {}
 					local flag = o.Flag or o.Name
 					local state = o.Default == true
 					local cb = o.Callback
 
-					local r = row(32)
+					local r = row(30)
 					local box = Instance.new("Frame")
 					box.BackgroundColor3 = state and T.Accent or T.Element
 					box.BorderSizePixel = 0
-					box.Position = UDim2.fromOffset(0, 7)
-					box.Size = UDim2.fromOffset(17, 17)
-					box.ZIndex = 10
+					box.Position = UDim2.fromOffset(0, 6)
+					box.Size = UDim2.fromOffset(16, 16)
+					box.ZIndex = 19
 					box.Parent = r
-					Corner(box, 0, 3)
+					Corner(box, 3)
 
 					local check = Instance.new("ImageLabel")
 					check.BackgroundTransparency = 1
 					check.Image = "rbxassetid://10709790644"
 					check.ImageColor3 = T.Check
 					check.ImageTransparency = state and 0 or 1
-					check.Position = UDim2.fromOffset(2, state and 2 or 10)
+					check.Position = UDim2.fromOffset(1, 1)
 					check.Size = UDim2.fromOffset(14, 14)
-					check.ZIndex = 11
+					check.ZIndex = 20
 					check.Parent = box
 
 					local nameL = Instance.new("TextLabel")
@@ -626,25 +659,35 @@ function Library:Window(opts)
 					nameL.FontFace = FontMain
 					nameL.Text = o.Name or "Toggle"
 					nameL.TextColor3 = state and T.Text or T.DimText
-					nameL.TextSize = 14
+					nameL.TextSize = 13
 					nameL.TextXAlignment = Enum.TextXAlignment.Left
-					nameL.Position = UDim2.fromOffset(26, 0)
-					nameL.Size = UDim2.new(1, -90, 1, 0)
-					nameL.ZIndex = 10
+					nameL.Position = UDim2.fromOffset(24, 0)
+					nameL.Size = UDim2.new(1, -70, 1, 0)
+					nameL.ZIndex = 19
 					nameL.Parent = r
+
+					-- gear icon (matches screenshot)
+					local gear = Instance.new("ImageLabel")
+					gear.BackgroundTransparency = 1
+					gear.Image = "rbxassetid://10734950309"
+					gear.ImageColor3 = T.DimText
+					gear.Position = UDim2.new(1, -18, 0.5, -7)
+					gear.Size = UDim2.fromOffset(14, 14)
+					gear.ZIndex = 19
+					gear.Parent = r
 
 					local hit = Instance.new("TextButton")
 					hit.BackgroundTransparency = 1
 					hit.Text = ""
 					hit.Size = UDim2.fromScale(1, 1)
-					hit.ZIndex = 12
+					hit.ZIndex = 21
 					hit.Parent = r
 
 					local function set(v)
 						state = v
-						Tween(box, { BackgroundColor3 = state and T.Accent or T.Element }, 0.18)
-						Tween(check, { ImageTransparency = state and 0 or 1, Position = UDim2.fromOffset(2, state and 2 or 10) }, 0.18)
-						Tween(nameL, { TextColor3 = state and T.Text or T.DimText }, 0.18)
+						Tween(box, { BackgroundColor3 = state and T.Accent or T.Element }, 0.15)
+						Tween(check, { ImageTransparency = state and 0 or 1 }, 0.15)
+						Tween(nameL, { TextColor3 = state and T.Text or T.DimText }, 0.15)
 						if flag then Library.Flags[flag] = state end
 						if cb then task.spawn(cb, state) end
 					end
@@ -667,11 +710,11 @@ function Library:Window(opts)
 						kLbl.Text = key.Name
 						kLbl.TextColor3 = T.DimText
 						kLbl.TextSize = 11
-						kLbl.Position = UDim2.new(1, -68, 0.5, -10)
-						kLbl.Size = UDim2.fromOffset(62, 20)
-						kLbl.ZIndex = 11
+						kLbl.Position = UDim2.new(1, -78, 0.5, -9)
+						kLbl.Size = UDim2.fromOffset(56, 18)
+						kLbl.ZIndex = 20
 						kLbl.Parent = r
-						Corner(kLbl, 0, 4)
+						Corner(kLbl, 4)
 
 						local listening = false
 						C(kLbl.InputBegan, function(i)
@@ -705,12 +748,12 @@ function Library:Window(opts)
 						extra.Size = UDim2.new(1, 0, 0, 0)
 						extra.AutomaticSize = Enum.AutomaticSize.Y
 						extra.Visible = state
-						extra.ZIndex = 9
+						extra.ZIndex = 18
 						extra.Parent = body
 
 						local eLay = Instance.new("UIListLayout")
 						eLay.SortOrder = Enum.SortOrder.LayoutOrder
-						eLay.Padding = UDim.new(0, 2)
+						eLay.Padding = UDim.new(0, 1)
 						eLay.Parent = extra
 
 						local old = set
@@ -736,17 +779,17 @@ function Library:Window(opts)
 					local suffix = o.Suffix or ""
 					local flag, cb = o.Flag, o.Callback
 
-					local r = row(42)
+					local r = row(40)
 					local nameL = Instance.new("TextLabel")
 					nameL.BackgroundTransparency = 1
 					nameL.FontFace = FontMain
 					nameL.Text = o.Name or "Slider"
 					nameL.TextColor3 = T.DimText
-					nameL.TextSize = 14
+					nameL.TextSize = 13
 					nameL.TextXAlignment = Enum.TextXAlignment.Left
-					nameL.Position = UDim2.fromOffset(0, 2)
-					nameL.Size = UDim2.new(1, -70, 0, 16)
-					nameL.ZIndex = 10
+					nameL.Position = UDim2.fromOffset(0, 1)
+					nameL.Size = UDim2.new(1, -70, 0, 15)
+					nameL.ZIndex = 19
 					nameL.Parent = r
 
 					local valL = Instance.new("TextLabel")
@@ -754,36 +797,29 @@ function Library:Window(opts)
 					valL.FontFace = FontMain
 					valL.Text = tostring(def) .. suffix
 					valL.TextColor3 = T.Text
-					valL.TextSize = 14
+					valL.TextSize = 12
 					valL.TextXAlignment = Enum.TextXAlignment.Right
-					valL.Position = UDim2.new(1, -60, 0, 2)
-					valL.Size = UDim2.fromOffset(60, 16)
-					valL.ZIndex = 10
+					valL.Position = UDim2.new(1, -58, 0, 1)
+					valL.Size = UDim2.fromOffset(58, 15)
+					valL.ZIndex = 19
 					valL.Parent = r
 
 					local track = Instance.new("Frame")
-					track.BackgroundColor3 = T.Element
+					track.BackgroundColor3 = T.Track
 					track.BorderSizePixel = 0
-					track.Position = UDim2.fromOffset(0, 24)
-					track.Size = UDim2.new(1, 0, 0, 7)
-					track.ZIndex = 10
+					track.Position = UDim2.fromOffset(0, 22)
+					track.Size = UDim2.new(1, 0, 0, 5)
+					track.ZIndex = 19
 					track.Parent = r
-					Corner(track, 1, 0)
+					Corner(track, 3)
 
 					local fill = Instance.new("Frame")
-					fill.BackgroundColor3 = Color3.new(1,1,1)
+					fill.BackgroundColor3 = T.Accent
 					fill.BorderSizePixel = 0
 					fill.Size = UDim2.new((def - min) / math.max(max - min, 1e-4), 0, 1, 0)
-					fill.ZIndex = 11
+					fill.ZIndex = 20
 					fill.Parent = track
-					Corner(fill, 1, 0)
-
-					local g = Instance.new("UIGradient")
-					g.Color = ColorSequence.new({
-						ColorSequenceKeypoint.new(0, T.Accent),
-						ColorSequenceKeypoint.new(1, T.AccentDark)
-					})
-					g.Parent = fill
+					Corner(fill, 3)
 
 					local dragging = false
 					local function update(x)
@@ -817,17 +853,17 @@ function Library:Window(opts)
 					local suffix = o.Suffix or ""
 					local flag = o.Flag
 
-					local r = row(42)
+					local r = row(40)
 					local nameL = Instance.new("TextLabel")
 					nameL.BackgroundTransparency = 1
 					nameL.FontFace = FontMain
 					nameL.Text = o.Name or "Range"
 					nameL.TextColor3 = T.DimText
-					nameL.TextSize = 14
+					nameL.TextSize = 13
 					nameL.TextXAlignment = Enum.TextXAlignment.Left
-					nameL.Position = UDim2.fromOffset(0, 2)
-					nameL.Size = UDim2.new(0.5, 0, 0, 16)
-					nameL.ZIndex = 10
+					nameL.Position = UDim2.fromOffset(0, 1)
+					nameL.Size = UDim2.new(0.55, 0, 0, 15)
+					nameL.ZIndex = 19
 					nameL.Parent = r
 
 					local valL = Instance.new("TextLabel")
@@ -835,30 +871,30 @@ function Library:Window(opts)
 					valL.FontFace = FontMain
 					valL.Text = dmin .. suffix .. " - " .. dmax .. suffix
 					valL.TextColor3 = T.Text
-					valL.TextSize = 13
+					valL.TextSize = 12
 					valL.TextXAlignment = Enum.TextXAlignment.Right
-					valL.Position = UDim2.new(0.5, 0, 0, 2)
-					valL.Size = UDim2.new(0.5, 0, 0, 16)
-					valL.ZIndex = 10
+					valL.Position = UDim2.new(0.55, 0, 0, 1)
+					valL.Size = UDim2.new(0.45, 0, 0, 15)
+					valL.ZIndex = 19
 					valL.Parent = r
 
 					local track = Instance.new("Frame")
-					track.BackgroundColor3 = T.Element
+					track.BackgroundColor3 = T.Track
 					track.BorderSizePixel = 0
-					track.Position = UDim2.fromOffset(0, 24)
-					track.Size = UDim2.new(1, 0, 0, 7)
-					track.ZIndex = 10
+					track.Position = UDim2.fromOffset(0, 22)
+					track.Size = UDim2.new(1, 0, 0, 5)
+					track.ZIndex = 19
 					track.Parent = r
-					Corner(track, 1, 0)
+					Corner(track, 3)
 
 					local fill = Instance.new("Frame")
 					fill.BackgroundColor3 = T.Accent
 					fill.BorderSizePixel = 0
 					fill.Position = UDim2.new((dmin-min)/(max-min), 0, 0, 0)
 					fill.Size = UDim2.new((dmax-dmin)/(max-min), 0, 1, 0)
-					fill.ZIndex = 11
+					fill.ZIndex = 20
 					fill.Parent = track
-					Corner(fill, 1, 0)
+					Corner(fill, 3)
 
 					if flag then Library.Flags[flag] = {dmin, dmax} end
 					return { Set = function() end }
@@ -872,48 +908,48 @@ function Library:Window(opts)
 					local def = o.Default or (multi and {} or (options[1] and tostring(options[1]) or "None"))
 					local flag, cb = o.Flag, o.Callback
 
-					local r = row(52)
+					local r = row(50)
 					local nameL = Instance.new("TextLabel")
 					nameL.BackgroundTransparency = 1
 					nameL.FontFace = FontMain
 					nameL.Text = o.Name or "Dropdown"
 					nameL.TextColor3 = T.DimText
-					nameL.TextSize = 14
+					nameL.TextSize = 13
 					nameL.TextXAlignment = Enum.TextXAlignment.Left
-					nameL.Position = UDim2.fromOffset(0, 2)
-					nameL.Size = UDim2.new(1, 0, 0, 16)
-					nameL.ZIndex = 10
+					nameL.Position = UDim2.fromOffset(0, 1)
+					nameL.Size = UDim2.new(1, 0, 0, 15)
+					nameL.ZIndex = 19
 					nameL.Parent = r
 
 					local box = Instance.new("Frame")
 					box.BackgroundColor3 = T.Element
 					box.BorderSizePixel = 0
-					box.Position = UDim2.fromOffset(0, 22)
-					box.Size = UDim2.new(1, 0, 0, 26)
-					box.ZIndex = 10
+					box.Position = UDim2.fromOffset(0, 20)
+					box.Size = UDim2.new(1, 0, 0, 24)
+					box.ZIndex = 19
 					box.Parent = r
-					Corner(box, 0, 6)
+					Corner(box, 6)
 
 					local valL = Instance.new("TextLabel")
 					valL.BackgroundTransparency = 1
 					valL.FontFace = FontMain
 					valL.Text = multi and table.concat(def, ", ") or tostring(def)
 					valL.TextColor3 = T.Text
-					valL.TextSize = 14
+					valL.TextSize = 12
 					valL.TextXAlignment = Enum.TextXAlignment.Left
 					valL.TextTruncate = Enum.TextTruncate.AtEnd
-					valL.Position = UDim2.fromOffset(10, 0)
-					valL.Size = UDim2.new(1, -30, 1, 0)
-					valL.ZIndex = 11
+					valL.Position = UDim2.fromOffset(8, 0)
+					valL.Size = UDim2.new(1, -28, 1, 0)
+					valL.ZIndex = 20
 					valL.Parent = box
 
 					local arrow = Instance.new("ImageLabel")
 					arrow.BackgroundTransparency = 1
 					arrow.Image = "rbxassetid://115907894584787"
 					arrow.ImageColor3 = T.DimText
-					arrow.Position = UDim2.new(1, -22, 0.5, -4)
-					arrow.Size = UDim2.fromOffset(12, 8)
-					arrow.ZIndex = 11
+					arrow.Position = UDim2.new(1, -18, 0.5, -4)
+					arrow.Size = UDim2.fromOffset(10, 7)
+					arrow.ZIndex = 20
 					arrow.Parent = box
 
 					if flag then Library.Flags[flag] = def end
@@ -924,9 +960,9 @@ function Library:Window(opts)
 					drop.BorderSizePixel = 0
 					drop.ClipsDescendants = true
 					drop.Visible = false
-					drop.ZIndex = 60
+					drop.ZIndex = 70
 					drop.Parent = Holder
-					Corner(drop, 0, 6)
+					Corner(drop, 7)
 
 					local list = Instance.new("ScrollingFrame")
 					list.BackgroundTransparency = 1
@@ -934,12 +970,12 @@ function Library:Window(opts)
 					list.Size = UDim2.fromScale(1, 1)
 					list.ScrollBarThickness = 2
 					list.AutomaticCanvasSize = Enum.AutomaticSize.Y
-					list.ZIndex = 61
+					list.ZIndex = 71
 					list.Parent = drop
 
 					local lLay = Instance.new("UIListLayout")
 					lLay.SortOrder = Enum.SortOrder.LayoutOrder
-					lLay.Padding = UDim.new(0, 2)
+					lLay.Padding = UDim.new(0, 1)
 					lLay.Parent = list
 
 					local lPad = Instance.new("UIPadding")
@@ -961,12 +997,12 @@ function Library:Window(opts)
 							item.FontFace = FontMain
 							item.Text = "  " .. tostring(opt)
 							item.TextColor3 = T.DimText
-							item.TextSize = 13
+							item.TextSize = 12
 							item.TextXAlignment = Enum.TextXAlignment.Left
-							item.Size = UDim2.new(1, -8, 0, 28)
-							item.ZIndex = 62
+							item.Size = UDim2.new(1, -8, 0, 26)
+							item.ZIndex = 72
 							item.Parent = list
-							Corner(item, 0, 4)
+							Corner(item, 4)
 
 							local isSel = multi and table.find(selected, opt) or selected == opt
 							if isSel then item.TextColor3 = T.Text end
@@ -994,7 +1030,7 @@ function Library:Window(opts)
 					hit.BackgroundTransparency = 1
 					hit.Text = ""
 					hit.Size = UDim2.fromScale(1, 1)
-					hit.ZIndex = 12
+					hit.ZIndex = 21
 					hit.Parent = box
 
 					C(hit.MouseButton1Click, function()
@@ -1002,8 +1038,8 @@ function Library:Window(opts)
 						if open then
 							local abs = box.AbsolutePosition
 							local sz = box.AbsoluteSize
-							drop.Position = UDim2.fromOffset(abs.X, abs.Y + sz.Y + 4)
-							drop.Size = UDim2.fromOffset(sz.X, math.min(160, #options * 30 + 8))
+							drop.Position = UDim2.fromOffset(abs.X, abs.Y + sz.Y + 3)
+							drop.Size = UDim2.fromOffset(sz.X, math.min(150, #options * 28 + 8))
 							drop.Visible = true
 						else
 							drop.Visible = false
@@ -1020,33 +1056,33 @@ function Library:Window(opts)
 					}
 				end
 
-				-- Colorpicker
+				-- Colorpicker (circle like screenshot)
 				function Section:Colorpicker(o)
 					o = o or {}
-					local flag, cb = o.Flag, o.Callback
+					local flag = o.Flag
 					local def = o.Default or T.Accent
 
-					local r = row(32)
+					local r = row(28)
 					local nameL = Instance.new("TextLabel")
 					nameL.BackgroundTransparency = 1
 					nameL.FontFace = FontMain
 					nameL.Text = o.Name or "Color"
 					nameL.TextColor3 = T.DimText
-					nameL.TextSize = 14
+					nameL.TextSize = 13
 					nameL.TextXAlignment = Enum.TextXAlignment.Left
 					nameL.Position = UDim2.fromOffset(0, 0)
-					nameL.Size = UDim2.new(1, -36, 1, 0)
-					nameL.ZIndex = 10
+					nameL.Size = UDim2.new(1, -30, 1, 0)
+					nameL.ZIndex = 19
 					nameL.Parent = r
 
 					local swatch = Instance.new("Frame")
 					swatch.BackgroundColor3 = def
 					swatch.BorderSizePixel = 0
-					swatch.Position = UDim2.new(1, -26, 0.5, -10)
-					swatch.Size = UDim2.fromOffset(20, 20)
-					swatch.ZIndex = 10
+					swatch.Position = UDim2.new(1, -20, 0.5, -8)
+					swatch.Size = UDim2.fromOffset(16, 16)
+					swatch.ZIndex = 19
 					swatch.Parent = r
-					Corner(swatch, 1, 0)
+					Corner(swatch, 99)
 
 					if flag then Library.Flags[flag] = def end
 					return { Set = function(_, c) swatch.BackgroundColor3 = c; if flag then Library.Flags[flag] = c end end }
@@ -1059,7 +1095,7 @@ function Library:Window(opts)
 					local flag, cb = o.Flag, o.Callback
 
 					if inputs then
-						local r = row(36)
+						local r = row(34)
 						local boxes = {}
 						local w = 1 / #inputs
 						for i, inp in ipairs(inputs) do
@@ -1071,13 +1107,13 @@ function Library:Window(opts)
 							b.PlaceholderColor3 = T.DimText
 							b.Text = ""
 							b.TextColor3 = T.Text
-							b.TextSize = 13
+							b.TextSize = 12
 							b.ClearTextOnFocus = false
 							b.Position = UDim2.new((i-1)*w, 2, 0, 4)
-							b.Size = UDim2.new(w, -4, 0, 28)
-							b.ZIndex = 10
+							b.Size = UDim2.new(w, -4, 0, 26)
+							b.ZIndex = 19
 							b.Parent = r
-							Corner(b, 0, 6)
+							Corner(b, 6)
 							if inp.Flag then
 								Library.Flags[inp.Flag] = ""
 								C(b.FocusLost, function()
@@ -1089,17 +1125,17 @@ function Library:Window(opts)
 						end
 						return { Get = function(_, idx) return boxes[idx] and boxes[idx].Text or "" end }
 					else
-						local r = row(52)
+						local r = row(50)
 						local nameL = Instance.new("TextLabel")
 						nameL.BackgroundTransparency = 1
 						nameL.FontFace = FontMain
 						nameL.Text = o.Name or "Textbox"
 						nameL.TextColor3 = T.DimText
-						nameL.TextSize = 14
+						nameL.TextSize = 13
 						nameL.TextXAlignment = Enum.TextXAlignment.Left
-						nameL.Position = UDim2.fromOffset(0, 2)
-						nameL.Size = UDim2.new(1, 0, 0, 16)
-						nameL.ZIndex = 10
+						nameL.Position = UDim2.fromOffset(0, 1)
+						nameL.Size = UDim2.new(1, 0, 0, 15)
+						nameL.ZIndex = 19
 						nameL.Parent = r
 
 						local box = Instance.new("TextBox")
@@ -1110,13 +1146,13 @@ function Library:Window(opts)
 						box.PlaceholderColor3 = T.DimText
 						box.Text = o.Default or ""
 						box.TextColor3 = T.Text
-						box.TextSize = 14
+						box.TextSize = 12
 						box.ClearTextOnFocus = false
-						box.Position = UDim2.fromOffset(0, 22)
-						box.Size = UDim2.new(1, 0, 0, 26)
-						box.ZIndex = 10
+						box.Position = UDim2.fromOffset(0, 20)
+						box.Size = UDim2.new(1, 0, 0, 24)
+						box.ZIndex = 19
 						box.Parent = r
-						Corner(box, 0, 6)
+						Corner(box, 6)
 
 						if flag then Library.Flags[flag] = box.Text end
 						C(box.FocusLost, function()
@@ -1130,18 +1166,18 @@ function Library:Window(opts)
 				-- Button
 				function Section:Button(o)
 					o = o or {}
-					local r = row(36)
+					local r = row(34)
 					local btn = Instance.new("TextButton")
 					btn.BackgroundColor3 = T.Element
 					btn.AutoButtonColor = false
 					btn.FontFace = FontMain
 					btn.Text = o.Name or "Button"
 					btn.TextColor3 = T.Text
-					btn.TextSize = 14
-					btn.Size = UDim2.new(1, 0, 0, 30)
-					btn.ZIndex = 10
+					btn.TextSize = 13
+					btn.Size = UDim2.new(1, 0, 0, 28)
+					btn.ZIndex = 19
 					btn.Parent = r
-					Corner(btn, 0, 6)
+					Corner(btn, 6)
 
 					C(btn.MouseButton1Click, function()
 						Ripple(btn)
@@ -1162,6 +1198,7 @@ function Library:Window(opts)
 				sBtn.TextColor3 = T.Text
 				sBtn.BackgroundTransparency = 0
 				Tab.CurrentSub = Sub
+				Window.Breadcrumb.Text = tName .. "  >  " .. sName
 			end)
 
 			table.insert(Tab.Subs, Sub)
@@ -1170,6 +1207,7 @@ function Library:Window(opts)
 				sBtn.TextColor3 = T.Text
 				sBtn.BackgroundTransparency = 0
 				Tab.CurrentSub = Sub
+				Window.Breadcrumb.Text = tName .. "  >  " .. sName
 			end
 			return Sub
 		end
@@ -1178,20 +1216,28 @@ function Library:Window(opts)
 			for _, t in ipairs(Window.Tabs) do
 				t.Page.Visible = false
 				t.Button.BackgroundTransparency = 1
-				t.Button:FindFirstChildOfClass("TextLabel").TextColor3 = T.DimText
-				t.Button:FindFirstChildOfClass("ImageLabel").ImageColor3 = T.DimText
+				t.Accent.Visible = false
+				t.Label.TextColor3 = T.DimText
+				t.Icon.ImageColor3 = T.DimText
 			end
 			page.Visible = true
 			btn.BackgroundTransparency = 0
+			accent.Visible = true
 			lbl.TextColor3 = T.Text
 			ic.ImageColor3 = T.Accent
 			Window.Current = Tab
+			if Tab.CurrentSub then
+				Window.Breadcrumb.Text = tName .. "  >  " .. Tab.CurrentSub.Button.Text
+			else
+				Window.Breadcrumb.Text = tName
+			end
 		end)
 
 		table.insert(Window.Tabs, Tab)
 		if #Window.Tabs == 1 then
 			page.Visible = true
 			btn.BackgroundTransparency = 0
+			accent.Visible = true
 			lbl.TextColor3 = T.Text
 			ic.ImageColor3 = T.Accent
 			Window.Current = Tab
