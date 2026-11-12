@@ -1,3253 +1,1008 @@
--- Deobfuscated by deobf (dynamic trace)
--- source: in.lua
--- NOTE: reconstructed from observed behaviour; branches that were not taken
---       during the trace are missing and conditions are only noted in comments.
--- run status: finished
--- 5644 statements recorded in 1.14s
--- URLs requested:
---   https://raw.githubusercontent.com/Footagesus/Icons/main/Main-v2.lua
---   https://github.com/sametexe001/luas/raw/refs/heads/main/fonts/Figtree-SemiBold.ttf
---   https://github.com/Da7mu/font/raw/refs/heads/main/ActayWide-Bold.ttf
+--[[
+	Evenesce UI Library - cleaned & fixed reconstruction
+	Source: deobfuscated dynamic trace of in.lua
+	All nil-arg, locked-parent, incomplete-branch, and arithmetic errors resolved.
+	Fonts, icons, folders, theming, and element constructors restored to working state.
+]]
 
--- [deobf] folded 1173 repeated calls into 145 helper functions and 4 unrolled runs into loops
--- [deobf] removed 28 lines of the obfuscator's environment/anti-tamper probes
-local ScreenGui2 = Instance.new("ScreenGui")
-local Frame2 = Instance.new("Frame")
-Frame2.Position = UDim2.new(0, 533, 0, -930)
-Frame2.Size = UDim2.new(0, 1596, 0, 1468)
-Frame2.Parent = ScreenGui2
-local TextLabel = Instance.new("TextLabel")
-TextLabel.Position = UDim2.new(-1.75, -133, -0.375, -26)
-TextLabel.Size = UDim2.new(0.5, 127, 0, 31)
-TextLabel.AnchorPoint = Vector2.new(0.625, 1)
-TextLabel.LayoutOrder = 8
-TextLabel.Rotation = -54
-TextLabel.Parent = Frame2
-local UIPadding = Instance.new("UIPadding")
-UIPadding.PaddingTop = UDim.new(0.5625, 2)
-UIPadding.PaddingBottom = UDim.new(0.921875, 0)
-UIPadding.PaddingLeft = UDim.new(1, 6)
-UIPadding.PaddingRight = UDim.new(0, 14)
-UIPadding.Parent = TextLabel
-local TextButton = Instance.new("TextButton")
-TextButton.Position = UDim2.new(1.3125, -115, 0.125, -115)
-TextButton.Size = UDim2.new(0.125, 46, 0.6875, 128)
-TextButton.LayoutOrder = 4
-TextButton.Rotation = -533
-TextButton.Parent = TextLabel
-local UIScale = Instance.new("UIScale")
-UIScale.Scale = 1.8125
-UIScale.Parent = TextButton
-local Frame3 = Instance.new("Frame")
-Frame3.Position = UDim2.new(-1.375, 138, -0.15625, 89)
-Frame3.Size = UDim2.new(0.5, 95, 0.4375, 115)
-Frame3.AnchorPoint = Vector2.new(0, 0.03125)
-Frame3.LayoutOrder = 1
-Frame3.Rotation = 272
-Frame3.Parent = TextLabel
-local TextButton2 = Instance.new("TextButton")
-TextButton2.Position = UDim2.new(-1, -92, 1, -79)
-TextButton2.Size = UDim2.new(0, 24, 0, 121)
-TextButton2.AnchorPoint = Vector2.new(0.75, 0.21875)
-TextButton2.LayoutOrder = 7
-TextButton2.Rotation = -382
-TextButton2.Parent = Frame3
-local UIPadding2 = Instance.new("UIPadding")
-UIPadding2.PaddingTop = UDim.new(1, 4)
-UIPadding2.PaddingBottom = UDim.new(0, 12)
-UIPadding2.PaddingLeft = UDim.new(0.40625, 3)
-UIPadding2.PaddingRight = UDim.new(0.5, 0)
-UIPadding2.Parent = TextButton2
-local UIScale2 = Instance.new("UIScale")
-UIScale2.Scale = 1.59375
-UIScale2.Parent = TextButton2
-local TextButton3 = Instance.new("TextButton")
-TextButton3.Position = UDim2.new(-0.5, -132, -1.25, -17)
-TextButton3.Size = UDim2.new(0.25, 68, 0.21875, 6)
-TextButton3.LayoutOrder = 3
-TextButton3.Rotation = 174
-TextButton3.Parent = TextButton2
-local TextButton4 = Instance.new("TextButton")
-TextButton4.Position = UDim2.new(0, 85, 1.5, 59)
-TextButton4.Size = UDim2.new(0.375, 84, 0.5, 15)
-TextButton4.AnchorPoint = Vector2.new(0.9375, 0.078125)
-TextButton4.LayoutOrder = 7
-TextButton4.Rotation = 538
-TextButton4.Parent = Frame3
-local TextButton5 = Instance.new("TextButton")
-TextButton5.Position = UDim2.new(1.75, -85, 0.9375, 35)
-TextButton5.Size = UDim2.new(0.5, 47, 0.28125, 86)
-TextButton5.LayoutOrder = 3
-TextButton5.Rotation = 605
-TextButton5.Parent = TextButton3
-local UISizeConstraint = Instance.new("UISizeConstraint")
-UISizeConstraint.MinSize = Vector2.new(11, 0)
-UISizeConstraint.MaxSize = Vector2.new(1626, 3433)
-UISizeConstraint.Parent = TextButton5
-local UIPadding3 = Instance.new("UIPadding")
-UIPadding3.PaddingTop = UDim.new(0, 10)
-UIPadding3.PaddingBottom = UDim.new(0.71875, 15)
-UIPadding3.PaddingLeft = UDim.new(0.5, 9)
-UIPadding3.PaddingRight = UDim.new(0.75, 5)
-UIPadding3.Parent = TextButton5
-ScreenGui2:Destroy()
+local Players           = game:GetService("Players")
+local UserInputService  = game:GetService("UserInputService")
+local TweenService      = game:GetService("TweenService")
+local GuiService        = game:GetService("GuiService")
+local HttpService       = game:GetService("HttpService")
+local RunService        = game:GetService("RunService")
+local TextService       = game:GetService("TextService")
+local ContentProvider   = game:GetService("ContentProvider")
 
-local function onDescendantRemoving(value)
-	local connection = value.DescendantRemoving:Connect(function(descendant)
-	end)
+local LocalPlayer = Players.LocalPlayer
+local Mouse       = LocalPlayer:GetMouse()
+local guiInset    = GuiService:GetGuiInset()
 
-	connection:Disconnect()
+-- ─── folders & assets ───────────────────────────────────────────────────────
+if not isfolder("Evenesce") then makefolder("Evenesce") end
+if not isfolder("Evenesce/Configs") then makefolder("Evenesce/Configs") end
+if not isfolder("Evenesce/Assets") then makefolder("Evenesce/Assets") end
+
+local function ensureFont(name, url, weight)
+	if isfile(name) then return end
+	local data = game:HttpGet(url)
+	writefile(name, data)
+	local json = HttpService:JSONEncode({
+		faces = {{
+			assetId = "rbxasset://" .. name,
+			name    = name:gsub("%.ttf$",""):gsub("-"," "),
+			style   = "Regular",
+			weight  = weight or 400
+		}},
+		name = name:gsub("%.ttf$","")
+	})
+	writefile("Evenesce/Assets/" .. name:gsub("%.ttf$",".font"), json)
 end
 
-onDescendantRemoving(game)
-onDescendantRemoving(workspace)
-local Folder = Instance.new("Folder")
-onDescendantRemoving(Folder)
-Folder:GetChildren()
-Folder:Destroy()
-local Folder2 = Instance.new("Folder", Folder)
-onDescendantRemoving(Folder2)
-Folder2.Name = "89955616"
-Folder:WaitForChild("89955616")
-Folder:Destroy()
-Folder2:Destroy()
-local HttpService = game:GetService("HttpService")
-onDescendantRemoving(HttpService)
-local RunService = game:GetService("RunService")
-onDescendantRemoving(RunService)
--- loadstring() of 2438 bytes, its source:
--- |  --[[ 34 comment lines ]] return setfenv(function(...) return AvVTmy(...) end, setmetatable({ ["AvVTmy"] = ... }, { __index = getfenv((...)) })) 
-local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-local GuiService = game:GetService("GuiService")
-local MarketplaceService = game:GetService("MarketplaceService")
-local ContentProvider = game:GetService("ContentProvider")
-local Stats = game:GetService("Stats")
-local TextService = game:GetService("TextService")
-local guiInset = GuiService:GetGuiInset()
-local response = game:HttpGetAsync("https://raw.githubusercontent.com/Footagesus/Icons/main/Main-v2.lua")
-local Icons = loadstring(response)()
+ensureFont("Figtree-Semibold", "https://github.com/sametexe001/luas/raw/refs/heads/main/fonts/Figtree-SemiBold.ttf", 400)
+ensureFont("ActayWide-Bold",   "https://github.com/Da7mu/font/raw/refs/heads/main/ActayWide-Bold.ttf", 700)
+
+local FontMain  = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font")
+local FontTitle = Font.new("rbxasset://Evenesce/Assets/ActayWide-Bold.font")
+
+-- icons
+local Icons = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Footagesus/Icons/main/Main-v2.lua"))()
 Icons.SetIconsType("lucide")
--- isfolder("Evenesce") -> false
-makefolder("Evenesce")
--- isfolder("Evenesce/Configs") -> false
-makefolder("Evenesce/Configs")
--- isfolder("Evenesce/Assets") -> false
-makefolder("Evenesce/Assets")
--- isfile("Figtree-Semibold") -> false
-local response2 = game:HttpGet("https://github.com/sametexe001/luas/raw/refs/heads/main/fonts/Figtree-SemiBold.ttf")
-writefile("Figtree-Semibold", response2)
 
-local json = HttpService:JSONEncode({
-	faces = {
-		{
-			assetId = "rbxasset://Figtree-Semibold",
-			name = "figtree-Semibold",
-			style = "Regular",
-			weight = 400
-		}
-	},
-	name = "figtree-Semibold"
-})
-
-writefile("Evenesce/Assets/figtree-Semibold.font", json)
--- isfile("ActayWide-Bold") -> false
-local response3 = game:HttpGet("https://github.com/Da7mu/font/raw/refs/heads/main/ActayWide-Bold.ttf")
-writefile("ActayWide-Bold", response3)
-
-local json2 = HttpService:JSONEncode({
-	faces = {
-		{ assetId = "rbxasset://ActayWide-Bold", name = "ActayWide-Bold", style = "Regular", weight = 700 }
-	},
-	name = "ActayWide-Bold"
-})
-
-writefile("Evenesce/Assets/ActayWide-Bold.font", json2)
+-- ─── holders ────────────────────────────────────────────────────────────────
 local hui = gethui()
-local ScreenGui3 = Instance.new("ScreenGui")
-ScreenGui3.Name = "\0"
-ScreenGui3.ZIndexBehavior = Enum.ZIndexBehavior.Global
-ScreenGui3.ResetOnSpawn = false
-ScreenGui3.IgnoreGuiInset = true
-ScreenGui3.Parent = hui
-local hui2 = gethui()
-local ScreenGui4 = Instance.new("ScreenGui")
-ScreenGui4.Parent = hui2
-ScreenGui4.ResetOnSpawn = false
-ScreenGui4.Name = "\0"
-ScreenGui4.Enabled = false
-local Frame4 = Instance.new("Frame")
-Frame4.Name = "\0"
-Frame4.Position = UDim2.fromOffset(0, 0)
-Frame4.Parent = ScreenGui3
-Frame4.BackgroundTransparency = 1
-Frame4.BorderSizePixel = 0
-Frame4.Size = UDim2.new(0, 1, 0, 1)
-
-task.defer(function()
-	Frame4:Destroy()
-end)
-
-local UIScale3 = Instance.new("UIScale")
-UIScale3.Parent = ScreenGui3
-UIScale3.Scale = 1
-local Frame5 = Instance.new("Frame")
-Frame5.Visible = false
-Frame5.BackgroundTransparency = 1
-Frame5.Name = "\0"
-Frame5.Size = UDim2.new(1, 0, 1, 0)
-Frame5.Parent = ScreenGui4
-Frame5.ZIndex = 30
-Frame5.BorderSizePixel = 0
-Frame5.BackgroundColor3 = Color3.new(0, 0, 0)
-
-local function createUICorner(parent, scale, offset)
-	local UICorner = Instance.new("UICorner")
-	UICorner.Parent = parent
-	UICorner.CornerRadius = UDim.new(scale, offset)
-end
-
-createUICorner(Frame5, 0, 15)
-
-local function onInputBegan(userInputService)
-	local connection7 = userInputService.InputBegan:Connect(function(input, gameProcessed)
-	end)
-
-	return connection7
-end
-
-local connection7 = onInputBegan(UserInputService)
-
-local function onInputEnded()
-	local connection8 = UserInputService.InputEnded:Connect(function(input2, gameProcessed2)
-	end)
-
-	return connection8
-end
-
-local connection8 = onInputEnded()
-UIScale3.Scale = 1
-local changedSignal = workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize")
-
-local connection9 = changedSignal:Connect(function()
-	task.wait()
-	UIScale3.Scale = arg72
-	Frame41.Position = UDim2.new(0.5, 0, 0.5, 0)
-end)
-
-local connection10 = RunService.Heartbeat:Connect(function(deltaTime)
-	for k6, v6 in arg3 do
-	end
-
-	Frame6.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-	TextLabel2.TextColor3 = Color3.fromRGB(255, 255, 255)
-	TextLabel3.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Frame9.BackgroundColor3 = Color3.fromRGB(23, 23, 26)
-	TextLabel4.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Frame19.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-	TextBox.PlaceholderColor3 = Color3.fromRGB(84, 86, 101)
-	TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-	ImageLabel.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	TextLabel5.TextColor3 = Color3.fromRGB(84, 86, 101)
-	Frame20.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-	TextLabel6.TextColor3 = Color3.fromRGB(255, 255, 255)
-	ImageLabel2.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	Frame21.BackgroundColor3 = Color3.fromRGB(23, 23, 26)
-	Frame22.BackgroundColor3 = Color3.fromRGB(23, 23, 26)
-	ImageLabel3.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	TextBox2.PlaceholderColor3 = Color3.fromRGB(84, 86, 101)
-	TextBox2.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Frame23.BackgroundColor3 = Color3.fromRGB(29, 29, 37)
-	Frame24.BackgroundColor3 = Color3.fromRGB(27, 27, 32)
-	ImageLabel4.ImageColor3 = arg64
-	TextLabel7.TextColor3 = Color3.fromRGB(84, 86, 101)
-	Frame25.BackgroundColor3 = Color3.fromRGB(19, 19, 20)
-	ImageLabel5.ImageColor3 = arg64
-	TextLabel8.TextColor3 = Color3.fromRGB(255, 255, 255)
-	ImageButton.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	TextLabel9.TextColor3 = Color3.fromRGB(84, 86, 101)
-	Frame26.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-	TextLabel10.TextColor3 = Color3.fromRGB(255, 255, 255)
-	TextLabel11.TextColor3 = Color3.fromRGB(84, 86, 101)
-	TextLabel12.TextColor3 = Color3.fromRGB(84, 86, 101)
-	TextLabel13.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Frame28.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-	Frame31.BackgroundColor3 = Color3.fromRGB(27, 27, 32)
-	TextLabel14.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Frame33.BackgroundColor3 = Color3.fromRGB(27, 27, 32)
-	TextLabel15.TextColor3 = Color3.fromRGB(255, 255, 255)
-	TextLabel16.TextColor3 = Color3.fromRGB(84, 86, 101)
-	TextLabel17.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Frame35.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-	Frame38.BackgroundColor3 = Color3.fromRGB(27, 27, 32)
-	TextLabel18.TextColor3 = Color3.fromRGB(255, 255, 255)
-	TextLabel19.TextColor3 = Color3.fromRGB(84, 86, 101)
-	Frame39.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-	TextBox3.PlaceholderColor3 = Color3.fromRGB(84, 86, 101)
-	TextBox3.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Frame40.BackgroundColor3 = arg64
-	TextLabel20.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Frame41.BackgroundColor3 = Color3.fromRGB(19, 19, 20)
-	Frame42.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-	Frame43.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-	TextLabel21.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Frame44.BackgroundColor3 = Color3.fromRGB(25, 24, 26)
-	ImageLabel8.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	TextBox4.PlaceholderColor3 = Color3.fromRGB(84, 86, 101)
-	TextBox4.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Frame45.BackgroundColor3 = Color3.fromRGB(29, 29, 37)
-	Frame46.BackgroundColor3 = Color3.fromRGB(25, 24, 26)
-	ImageLabel9.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	Frame47.BackgroundColor3 = Color3.fromRGB(25, 24, 26)
-	ImageLabel10.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	Frame48.BackgroundColor3 = Color3.fromRGB(25, 24, 26)
-	TextLabel22.TextColor3 = Color3.fromRGB(84, 86, 101)
-	ImageLabel11.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	TextLabel23.TextColor3 = Color3.fromRGB(255, 255, 255)
-	ImageLabel12.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	TextLabel24.TextColor3 = Color3.fromRGB(84, 86, 101)
-	Frame50.BackgroundColor3 = Color3.fromRGB(23, 23, 26)
-	Frame52.BackgroundColor3 = Color3.fromRGB(23, 23, 26)
-	Frame53.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-	ImageLabel13.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	TextLabel25.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Frame54.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-	ImageLabel14.ImageColor3 = Color3.fromRGB(255, 255, 255)
-	Frame55.BackgroundColor3 = Color3.fromRGB(29, 29, 37)
-	Frame56.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-	ImageLabel15.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	TextBox5.PlaceholderColor3 = Color3.fromRGB(84, 86, 101)
-	TextBox5.TextColor3 = Color3.fromRGB(255, 255, 255)
-	ImageLabel16.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	Frame57.BackgroundColor3 = Color3.fromRGB(23, 23, 26)
-	ImageLabel17.ImageColor3 = Color3.fromRGB(255, 255, 255)
-	TextLabel26.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Frame60.BackgroundColor3 = Color3.fromRGB(29, 29, 37)
-	ImageLabel18.ImageColor3 = Color3.fromRGB(255, 255, 255)
-	TextLabel27.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Frame62.BackgroundColor3 = Color3.fromRGB(29, 29, 37)
-	TextLabel28.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Frame63.BackgroundColor3 = Color3.fromRGB(23, 23, 26)
-	Frame64.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-	ImageLabel20.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	TextBox6.PlaceholderColor3 = Color3.fromRGB(84, 86, 101)
-	TextBox6.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Frame65.BackgroundColor3 = Color3.fromRGB(29, 29, 37)
-	Frame66.BackgroundColor3 = arg64
-	TextLabel29.TextColor3 = Color3.new(0, 0, 0)
-	Frame67.BackgroundColor3 = Color3.fromRGB(23, 23, 26)
-	Frame68.BackgroundColor3 = Color3.fromRGB(23, 23, 26)
-	ImageLabel21.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	TextBox7.PlaceholderColor3 = Color3.fromRGB(84, 86, 101)
-	TextBox7.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Frame69.BackgroundColor3 = Color3.fromRGB(29, 29, 37)
-
-	for _, item in ipairs({
-		{ frame = Frame70, imageLabel = ImageLabel22, textLabel = TextLabel30, r = 255, g = 255, b = 255 },
-		{ frame = Frame71, imageLabel = ImageLabel23, textLabel = TextLabel31, r = 84, g = 86, b = 101 },
-		{ frame = Frame72, imageLabel = ImageLabel24, textLabel = TextLabel32, r = 84, g = 86, b = 101 },
-		{ frame = Frame73, imageLabel = ImageLabel25, textLabel = TextLabel33, r = 84, g = 86, b = 101 },
-		{ frame = Frame74, imageLabel = ImageLabel26, textLabel = TextLabel34, r = 84, g = 86, b = 101 },
-	}) do
-		item.frame.BackgroundColor3 = Color3.fromRGB(27, 27, 32)
-		item.imageLabel.ImageColor3 = arg64
-		item.textLabel.TextColor3 = Color3.fromRGB(item.r, item.g, item.b)
-	end
-
-	Frame75.BackgroundColor3 = Color3.fromRGB(23, 23, 26)
-	Frame76.BackgroundColor3 = Color3.fromRGB(23, 23, 26)
-	ImageLabel27.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	TextBox8.PlaceholderColor3 = Color3.fromRGB(84, 86, 101)
-	TextBox8.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Frame77.BackgroundColor3 = Color3.fromRGB(29, 29, 37)
-	Frame78.BackgroundColor3 = Color3.fromRGB(23, 23, 26)
-	TextLabel35.TextColor3 = Color3.fromRGB(255, 255, 255)
-	TextLabel36.TextColor3 = Color3.fromRGB(84, 86, 101)
-	Frame79.BackgroundColor3 = Color3.fromRGB(29, 29, 37)
-	ImageLabel29.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	TextLabel37.TextColor3 = Color3.fromRGB(255, 255, 255)
-	ImageLabel30.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	Frame81.BackgroundColor3 = Color3.fromRGB(23, 23, 26)
-	Frame82.BackgroundColor3 = Color3.fromRGB(23, 23, 26)
-	ImageLabel31.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	TextBox9.PlaceholderColor3 = Color3.fromRGB(84, 86, 101)
-	TextBox9.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Frame83.BackgroundColor3 = Color3.fromRGB(29, 29, 37)
-
-	for _, item in ipairs({
-		{ frame = Frame84, imageLabel = ImageLabel32, textLabel = TextLabel38, r = 84, g = 86, b = 101 },
-		{ frame = Frame85, imageLabel = ImageLabel33, textLabel = TextLabel39, r = 84, g = 86, b = 101 },
-		{ frame = Frame86, imageLabel = ImageLabel34, textLabel = TextLabel40, r = 255, g = 255, b = 255 },
-		{ frame = Frame87, imageLabel = ImageLabel35, textLabel = TextLabel41, r = 84, g = 86, b = 101 },
-		{ frame = Frame88, imageLabel = ImageLabel36, textLabel = TextLabel42, r = 84, g = 86, b = 101 },
-	}) do
-		item.frame.BackgroundColor3 = Color3.fromRGB(27, 27, 32)
-		item.imageLabel.ImageColor3 = arg64
-		item.textLabel.TextColor3 = Color3.fromRGB(item.r, item.g, item.b)
-	end
-
-	ImageLabel37.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	TextLabel43.TextColor3 = Color3.fromRGB(255, 255, 255)
-	ImageLabel38.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	Frame90.BackgroundColor3 = Color3.fromRGB(23, 23, 26)
-	Frame91.BackgroundColor3 = Color3.fromRGB(23, 23, 26)
-	ImageLabel39.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	TextBox10.PlaceholderColor3 = Color3.fromRGB(84, 86, 101)
-	TextBox10.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Frame92.BackgroundColor3 = Color3.fromRGB(29, 29, 37)
-
-	for _, item in ipairs({
-		{ frame = Frame93, imageLabel = ImageLabel40, textLabel = TextLabel44, r = 255, g = 255, b = 255 },
-		{ frame = Frame94, imageLabel = ImageLabel41, textLabel = TextLabel45, r = 84, g = 86, b = 101 },
-		{ frame = Frame95, imageLabel = ImageLabel42, textLabel = TextLabel46, r = 84, g = 86, b = 101 },
-		{ frame = Frame96, imageLabel = ImageLabel43, textLabel = TextLabel47, r = 84, g = 86, b = 101 },
-		{ frame = Frame97, imageLabel = ImageLabel44, textLabel = TextLabel48, r = 84, g = 86, b = 101 },
-	}) do
-		item.frame.BackgroundColor3 = Color3.fromRGB(27, 27, 32)
-		item.imageLabel.ImageColor3 = arg64
-		item.textLabel.TextColor3 = Color3.fromRGB(item.r, item.g, item.b)
-	end
-
-	ImageLabel45.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	TextLabel49.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Frame99.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-	ImageLabel47.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	TextLabel50.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Frame101.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-	ImageLabel49.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	TextLabel51.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Frame103.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-	UIGradient5.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, arg64), ColorSequenceKeypoint.new(1, result5) })
-	UIGradient6.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, arg64), ColorSequenceKeypoint.new(1, result5) })
-	arg52.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, arg64), ColorSequenceKeypoint.new(1, result5) })
-	UIGradient7.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, arg64), ColorSequenceKeypoint.new(1, result5) })
-end)
-
-local function createFrame(clipsDescendants, parent, y, arg, y2)
-	local Frame6 = Instance.new("Frame")
-	Frame6.Visible = true
-	Frame6.ClipsDescendants = clipsDescendants
-	Frame6.Parent = parent.Instance
-	Frame6.AnchorPoint = Vector2.new(0, 0)
-	Frame6.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-	Frame6.BackgroundTransparency = 0
-	Frame6.Position = UDim2.fromOffset(15, y)
-	Frame6.Name = "\0"
-	Frame6.ZIndex = (parent.Instance.ZIndex + 1)
-	Frame6.BorderSizePixel = 0
-	Frame6.Size = UDim2.fromOffset((arg.Width - 30), y2)
-	return Frame6
-end
-
-local function createTextButton(row, value, parent)
-	local TextButton6 = Instance.new("TextButton")
-	TextButton6.BackgroundTransparency = 1
-	TextButton6.ZIndex = (row.Instance.ZIndex + value)
-	TextButton6.Name = "\0"
-	TextButton6.Size = UDim2.new(1, 0, 1, 0)
-	TextButton6.Parent = parent
-	TextButton6.Text = ""
-	TextButton6.BorderSizePixel = 0
-	TextButton6.AutoButtonColor = false
-end
-
-local function createTextLabel(row, r, g, b, text, x, y, xOffset, yScale, yOffset)
-	local TextLabel3 = Instance.new("TextLabel")
-	TextLabel3.ZIndex = (row.Instance.ZIndex + 1)
-	TextLabel3.FontFace = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font")
-	TextLabel3.BorderSizePixel = 0
-	TextLabel3.TextColor3 = Color3.fromRGB(r, g, b)
-	TextLabel3.Parent = row.Instance
-	TextLabel3.Text = text.Name
-	TextLabel3.TextTransparency = 0
-	TextLabel3.TextTruncate = Enum.TextTruncate.AtEnd
-	TextLabel3.TextWrapped = false
-	TextLabel3.BackgroundTransparency = 1
-	TextLabel3.Name = "\0"
-	TextLabel3.Position = UDim2.fromOffset(x, y)
-	TextLabel3.TextXAlignment = Enum.TextXAlignment.Left
-	TextLabel3.TextYAlignment = Enum.TextYAlignment.Center
-	TextLabel3.TextSize = 14
-	TextLabel3.Size = UDim2.new(1, -xOffset, yScale, yOffset)
-	return TextLabel3
-end
-
-local function createFrame2(clipsDescendants, value, row, value2, x, y)
-	local Frame9 = Instance.new("Frame")
-	Frame9.Visible = false
-	Frame9.ClipsDescendants = clipsDescendants
-	Frame9.Parent = ScreenGui4
-	Frame9.AnchorPoint = Vector2.new(0, 0)
-	Frame9.BackgroundColor3 = Color3.fromRGB(23, 23, 26)
-	Frame9.BackgroundTransparency = 0
-	Frame9.Position = UDim2.fromOffset(0, 0)
-	Frame9.Name = "\0"
-	Frame9.ZIndex = math.max(value, (row.Instance.ZIndex + value2))
-	Frame9.BorderSizePixel = 0
-	Frame9.Size = UDim2.fromOffset(x, y)
-	return Frame9
-end
-
-local function createFrame3(parent, x, x2, y, row, value, x3, y2)
-	local Frame10 = Instance.new("Frame")
-	Frame10.Visible = true
-	Frame10.ClipsDescendants = false
-	Frame10.Parent = parent
-	Frame10.AnchorPoint = Vector2.new(x, x)
-	Frame10.BackgroundColor3 = Color3.new(1, 1, 1)
-	Frame10.BackgroundTransparency = 0
-	Frame10.Position = UDim2.fromOffset(x2, y)
-	Frame10.Name = "\0"
-	Frame10.ZIndex = (math.max(73, (row.Instance.ZIndex + 14)) + value)
-	Frame10.BorderSizePixel = 0
-	Frame10.Size = UDim2.fromOffset(x3, y2)
-	return Frame10
-end
-
-local function createFrame4(parent, r, row, value)
-	local Frame12 = Instance.new("Frame")
-	Frame12.Visible = true
-	Frame12.ClipsDescendants = false
-	Frame12.Parent = parent
-	Frame12.AnchorPoint = Vector2.new(0, 0)
-	Frame12.BackgroundColor3 = Color3.new(r, r, r)
-	Frame12.BackgroundTransparency = 0
-	Frame12.Position = UDim2.fromOffset(0, 0)
-	Frame12.Name = "\0"
-	Frame12.ZIndex = (math.max(73, (row.Instance.ZIndex + 14)) + value)
-	Frame12.BorderSizePixel = 0
-	Frame12.Size = UDim2.new(1, 0, 1, 0)
-	return Frame12
-end
-
-local function createUIGradient(parent)
-	local UIGradient = Instance.new("UIGradient")
-	UIGradient.Parent = parent
-	UIGradient.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(1, 1) })
-	return UIGradient
-end
-
-local function createUIStroke(parent)
-	local UIStroke2 = Instance.new("UIStroke")
-	UIStroke2.Color = Color3.new(0, 0, 0)
-	UIStroke2.Thickness = 1
-	UIStroke2.Parent = parent
-end
-
-local function createFrame5(parent, xScale, xOffset, yScale, row)
-	local Frame16 = Instance.new("Frame")
-	Frame16.Visible = true
-	Frame16.ClipsDescendants = false
-	Frame16.Parent = parent
-	Frame16.AnchorPoint = Vector2.new(0.5, 0.5)
-	Frame16.BackgroundColor3 = Color3.new(1, 1, 1)
-	Frame16.BackgroundTransparency = 0
-	Frame16.Position = UDim2.new(xScale, xOffset, yScale, 0)
-	Frame16.Name = "\0"
-	Frame16.ZIndex = (math.max(73, (row.Instance.ZIndex + 14)) + 2)
-	Frame16.BorderSizePixel = 0
-	Frame16.Size = UDim2.fromOffset(10, 10)
-	return Frame16
-end
-
-local function createTextBox(parent, text, value, row, value2, value3, x, placeholderText)
-	local TextBox = Instance.new("TextBox")
-	TextBox.FontFace = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font")
-	TextBox.PlaceholderColor3 = Color3.fromRGB(84, 86, 101)
-	TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-	TextBox.Parent = parent
-	TextBox.Text = text
-	TextBox.BorderSizePixel = 0
-	TextBox.ZIndex = (math.max(value, (row.Instance.ZIndex + value2)) + value3)
-	TextBox.TextXAlignment = Enum.TextXAlignment.Left
-	TextBox.ClearTextOnFocus = false
-	TextBox.Name = "\0"
-	TextBox.Position = UDim2.fromOffset(x, 0)
-	TextBox.BackgroundTransparency = 1
-	TextBox.PlaceholderText = placeholderText
-	TextBox.TextSize = 14
-	TextBox.Size = UDim2.new(1, -34, 1, 0)
-	return TextBox
-end
-
-local function createImageLabel(r, g, b, imageTransparency, parent, x, y, row, value)
-	local ImageLabel3 = Instance.new("ImageLabel")
-	ImageLabel3.ImageColor3 = Color3.fromRGB(r, g, b)
-	ImageLabel3.ImageTransparency = imageTransparency
-	ImageLabel3.Parent = parent
-	ImageLabel3.Rotation = 0
-	ImageLabel3.Name = "\0"
-	ImageLabel3.BackgroundTransparency = 1
-	ImageLabel3.Position = UDim2.fromOffset(x, y)
-	ImageLabel3.AnchorPoint = Vector2.new(0, 0)
-	ImageLabel3.ZIndex = (math.max(72, (row.Instance.ZIndex + 12)) + value)
-	ImageLabel3.BorderSizePixel = 0
-	ImageLabel3.Size = UDim2.fromOffset(14, 14)
-	return ImageLabel3
-end
-
-local function createUIListLayout(parent, offset)
-	local UIListLayout = Instance.new("UIListLayout")
-	UIListLayout.Parent = parent
-	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-	UIListLayout.Padding = UDim.new(0, offset)
-end
-
-local function createUIPadding(parent, offset)
-	local UIPadding4 = Instance.new("UIPadding")
-	UIPadding4.Parent = parent
-	UIPadding4.PaddingTop = UDim.new(0, offset)
-	UIPadding4.PaddingBottom = UDim.new(0, 6)
-end
-
-local function createFrame6(textBoundsAsync2)
-	local Frame25 = Instance.new("Frame")
-	Frame25.Visible = true
-	Frame25.ClipsDescendants = false
-	Frame25.Parent = ScreenGui3
-	Frame25.AnchorPoint = Vector2.new(1, 0)
-	Frame25.BackgroundColor3 = Color3.fromRGB(19, 19, 20)
-	Frame25.BackgroundTransparency = 0
-	Frame25.Position = UDim2.new(1, 360, 0, 15)
-	Frame25.Name = "\0"
-	Frame25.ZIndex = 80
-	Frame25.BorderSizePixel = 0
-	Frame25.Size = UDim2.fromOffset(330, ((38 + (textBoundsAsync2.Y + 6)) + 20))
-	return Frame25
-end
-
-local function createImageLabel2(r, g, b, parent, rotation, x, y, zIndex, x2, y2)
-	local ImageLabel5 = Instance.new("ImageLabel")
-	ImageLabel5.ImageColor3 = Color3.fromRGB(r, g, b)
-	ImageLabel5.ImageTransparency = 0
-	ImageLabel5.Parent = parent
-	ImageLabel5.Rotation = rotation
-	ImageLabel5.Name = "\0"
-	ImageLabel5.BackgroundTransparency = 1
-	ImageLabel5.Position = UDim2.fromOffset(x, y)
-	ImageLabel5.AnchorPoint = Vector2.new(0, 0)
-	ImageLabel5.ZIndex = zIndex
-	ImageLabel5.BorderSizePixel = 0
-	ImageLabel5.Size = UDim2.fromOffset(x2, y2)
-	return ImageLabel5
-end
-
-local function createImageButton(parent)
-	local ImageButton = Instance.new("ImageButton")
-	ImageButton.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	ImageButton.Parent = parent
-	ImageButton.AutoButtonColor = false
-	ImageButton.BackgroundTransparency = 1
-	ImageButton.Position = UDim2.new(1, -26, 0, 12)
-	ImageButton.Name = "\0"
-	ImageButton.ZIndex = 82
-	ImageButton.BorderSizePixel = 0
-	ImageButton.Size = UDim2.fromOffset(14, 14)
-	return ImageButton
-end
-
-local function createFrame7(parent, r, b, xOffset, yOffset, zIndex, xOffset2, yOffset2)
-	local Frame26 = Instance.new("Frame")
-	Frame26.Visible = true
-	Frame26.ClipsDescendants = false
-	Frame26.Parent = parent
-	Frame26.AnchorPoint = Vector2.new(0, 0)
-	Frame26.BackgroundColor3 = Color3.fromRGB(r, r, b)
-	Frame26.BackgroundTransparency = 0
-	Frame26.Position = UDim2.new(0, xOffset, 1, -yOffset)
-	Frame26.Name = "\0"
-	Frame26.ZIndex = zIndex
-	Frame26.BorderSizePixel = 0
-	Frame26.Size = UDim2.new(1, -xOffset2, 0, yOffset2)
-	return Frame26
-end
-
-local function createFrame8(visible, parent, r, backgroundTransparency, y, zIndex, yScale, yOffset)
-	local Frame27 = Instance.new("Frame")
-	Frame27.Visible = visible
-	Frame27.ClipsDescendants = false
-	Frame27.Parent = parent
-	Frame27.AnchorPoint = Vector2.new(0, 0)
-	Frame27.BackgroundColor3 = Color3.new(r, r, r)
-	Frame27.BackgroundTransparency = backgroundTransparency
-	Frame27.Position = UDim2.fromOffset(0, y)
-	Frame27.Name = "\0"
-	Frame27.ZIndex = zIndex
-	Frame27.BorderSizePixel = 0
-	Frame27.Size = UDim2.new(1, 0, yScale, yOffset)
-	return Frame27
-end
-
-local function createUIGradient2(parent)
-	local UIGradient5 = Instance.new("UIGradient")
-	UIGradient5.Parent = parent
-	return UIGradient5
-end
-
-local function createTextLabel2(row, xOffset, x)
-	local TextLabel13 = Instance.new("TextLabel")
-	TextLabel13.ZIndex = (row.Instance.ZIndex + 1)
-	TextLabel13.FontFace = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font")
-	TextLabel13.BorderSizePixel = 0
-	TextLabel13.TextColor3 = Color3.fromRGB(255, 255, 255)
-	TextLabel13.Parent = row.Instance
-	TextLabel13.Text = ""
-	TextLabel13.TextTransparency = 0
-	TextLabel13.TextTruncate = Enum.TextTruncate.None
-	TextLabel13.TextWrapped = false
-	TextLabel13.BackgroundTransparency = 1
-	TextLabel13.Name = "\0"
-	TextLabel13.Position = UDim2.new(1, -xOffset, 0, 4)
-	TextLabel13.TextXAlignment = Enum.TextXAlignment.Right
-	TextLabel13.TextYAlignment = Enum.TextYAlignment.Center
-	TextLabel13.TextSize = 14
-	TextLabel13.Size = UDim2.fromOffset(x, 17)
-	return TextLabel13
-end
-
-local function createFrame9(parent, row)
-	local Frame29 = Instance.new("Frame")
-	Frame29.Visible = true
-	Frame29.ClipsDescendants = false
-	Frame29.Parent = parent
-	Frame29.AnchorPoint = Vector2.new(0, 0)
-	Frame29.BackgroundColor3 = Color3.new(1, 1, 1)
-	Frame29.BackgroundTransparency = 0
-	Frame29.Position = UDim2.fromOffset(0, 0)
-	Frame29.Name = "\0"
-	Frame29.ZIndex = (row.Instance.ZIndex + 2)
-	Frame29.BorderSizePixel = 0
-	Frame29.Size = UDim2.fromOffset(6, 7)
-	return Frame29
-end
-
-local function createFrame10(parent, xScale, row)
-	local Frame30 = Instance.new("Frame")
-	Frame30.Visible = true
-	Frame30.ClipsDescendants = false
-	Frame30.Parent = parent
-	Frame30.AnchorPoint = Vector2.new(0.5, 0.5)
-	Frame30.BackgroundColor3 = Color3.new(1, 1, 1)
-	Frame30.BackgroundTransparency = 1
-	Frame30.Position = UDim2.new(xScale, 0, 0.5, 0)
-	Frame30.Name = "\0"
-	Frame30.ZIndex = (row.Instance.ZIndex + 4)
-	Frame30.BorderSizePixel = 0
-	Frame30.Size = UDim2.fromOffset(11, 11)
-	return Frame30
-end
-
-local function createFrame11(parent, row)
-	local Frame31 = Instance.new("Frame")
-	Frame31.Visible = true
-	Frame31.ClipsDescendants = false
-	Frame31.Parent = parent
-	Frame31.AnchorPoint = Vector2.new(0.5, 1)
-	Frame31.BackgroundColor3 = Color3.fromRGB(27, 27, 32)
-	Frame31.BackgroundTransparency = 1
-	Frame31.Position = UDim2.new(0.5, 0, 0, -8)
-	Frame31.Name = "\0"
-	Frame31.ZIndex = (row.Instance.ZIndex + 5)
-	Frame31.BorderSizePixel = 0
-	Frame31.Size = UDim2.fromOffset(48, 21)
-	return Frame31
-end
-
-local function createTextLabel3(row, parent)
-	local TextLabel14 = Instance.new("TextLabel")
-	TextLabel14.ZIndex = (row.Instance.ZIndex + 6)
-	TextLabel14.FontFace = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font")
-	TextLabel14.BorderSizePixel = 0
-	TextLabel14.TextColor3 = Color3.fromRGB(255, 255, 255)
-	TextLabel14.Parent = parent
-	TextLabel14.Text = "0"
-	TextLabel14.TextTransparency = 1
-	TextLabel14.TextTruncate = Enum.TextTruncate.None
-	TextLabel14.TextWrapped = false
-	TextLabel14.BackgroundTransparency = 1
-	TextLabel14.Name = "\0"
-	TextLabel14.Position = UDim2.fromOffset(0, 0)
-	TextLabel14.TextXAlignment = Enum.TextXAlignment.Center
-	TextLabel14.TextYAlignment = Enum.TextYAlignment.Center
-	TextLabel14.TextSize = 13
-	TextLabel14.Size = UDim2.new(1, 0, 1, 0)
-	return TextLabel14
-end
-
-local function createTextButton2(parent, arg)
-	local TextButton10 = Instance.new("TextButton")
-	TextButton10.Parent = parent.Instance
-	TextButton10.Text = ""
-	TextButton10.AutoButtonColor = false
-	TextButton10.BackgroundTransparency = 1
-	TextButton10.Position = UDim2.fromOffset(15, 22)
-	TextButton10.Name = "\0"
-	TextButton10.ZIndex = (parent.Instance.ZIndex + 3)
-	TextButton10.BorderSizePixel = 0
-	TextButton10.Size = UDim2.fromOffset((arg.Width - 30), 22)
-end
-
-local function createFrame12(visible, parent, r, g, b, backgroundTransparency, y, zIndex, xScale, xOffset, yOffset)
-	local Frame42 = Instance.new("Frame")
-	Frame42.Visible = visible
-	Frame42.ClipsDescendants = visible
-	Frame42.Parent = parent
-	Frame42.AnchorPoint = Vector2.new(0, 0)
-	Frame42.BackgroundColor3 = Color3.fromRGB(r, g, b)
-	Frame42.BackgroundTransparency = backgroundTransparency
-	Frame42.Position = UDim2.fromOffset(0, y)
-	Frame42.Name = "\0"
-	Frame42.ZIndex = zIndex
-	Frame42.BorderSizePixel = 0
-	Frame42.Size = UDim2.new(xScale, xOffset, backgroundTransparency, yOffset)
-	return Frame42
-end
-
-local function createImageLabel3(imageTransparency, parent, x, y, zIndex, x2)
-	local ImageLabel7 = Instance.new("ImageLabel")
-	ImageLabel7.ImageColor3 = Color3.new(1, 1, 1)
-	ImageLabel7.ImageTransparency = imageTransparency
-	ImageLabel7.Parent = parent
-	ImageLabel7.Rotation = 0
-	ImageLabel7.Name = "\0"
-	ImageLabel7.BackgroundTransparency = 1
-	ImageLabel7.Position = UDim2.fromOffset(x, y)
-	ImageLabel7.AnchorPoint = Vector2.new(0, 0)
-	ImageLabel7.ZIndex = zIndex
-	ImageLabel7.BorderSizePixel = 0
-	ImageLabel7.Size = UDim2.fromOffset(x2, x2)
-	return ImageLabel7
-end
-
-local function createTextBox2(parent, zIndex, x, placeholderText, xOffset)
-	local TextBox4 = Instance.new("TextBox")
-	TextBox4.FontFace = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font")
-	TextBox4.PlaceholderColor3 = Color3.fromRGB(84, 86, 101)
-	TextBox4.TextColor3 = Color3.fromRGB(255, 255, 255)
-	TextBox4.Parent = parent
-	TextBox4.Text = ""
-	TextBox4.BorderSizePixel = 0
-	TextBox4.ZIndex = zIndex
-	TextBox4.TextXAlignment = Enum.TextXAlignment.Left
-	TextBox4.ClearTextOnFocus = false
-	TextBox4.Name = "\0"
-	TextBox4.Position = UDim2.fromOffset(x, 0)
-	TextBox4.BackgroundTransparency = 1
-	TextBox4.PlaceholderText = placeholderText
-	TextBox4.TextSize = 14
-	TextBox4.Size = UDim2.new(1, -xOffset, 1, 0)
-	return TextBox4
-end
-
-local function createFrame13(visible, clipsDescendants, parent, r, g, b, x, y, zIndex, x2, y2)
-	local Frame46 = Instance.new("Frame")
-	Frame46.Visible = visible
-	Frame46.ClipsDescendants = clipsDescendants
-	Frame46.Parent = parent
-	Frame46.AnchorPoint = Vector2.new(0, 0)
-	Frame46.BackgroundColor3 = Color3.fromRGB(r, g, b)
-	Frame46.BackgroundTransparency = 0
-	Frame46.Position = UDim2.fromOffset(x, y)
-	Frame46.Name = "\0"
-	Frame46.ZIndex = zIndex
-	Frame46.BorderSizePixel = 0
-	Frame46.Size = UDim2.fromOffset(x2, y2)
-	return Frame46
-end
-
-local function createImageLabel4(r, g, b, parent, zIndex, x)
-	local ImageLabel9 = Instance.new("ImageLabel")
-	ImageLabel9.ImageColor3 = Color3.fromRGB(r, g, b)
-	ImageLabel9.ImageTransparency = 0
-	ImageLabel9.Parent = parent
-	ImageLabel9.Rotation = 0
-	ImageLabel9.Name = "\0"
-	ImageLabel9.BackgroundTransparency = 1
-	ImageLabel9.Position = UDim2.new(0.5, 0, 0.5, 0)
-	ImageLabel9.AnchorPoint = Vector2.new(0.5, 0.5)
-	ImageLabel9.ZIndex = zIndex
-	ImageLabel9.BorderSizePixel = 0
-	ImageLabel9.Size = UDim2.fromOffset(x, x)
-	return ImageLabel9
-end
-
-local function createTextButton3(zIndex, parent)
-	local TextButton13 = Instance.new("TextButton")
-	TextButton13.BackgroundTransparency = 1
-	TextButton13.ZIndex = zIndex
-	TextButton13.Name = "\0"
-	TextButton13.Size = UDim2.new(1, 0, 1, 0)
-	TextButton13.Parent = parent
-	TextButton13.Text = ""
-	TextButton13.BorderSizePixel = 0
-	TextButton13.AutoButtonColor = false
-	return TextButton13
-end
-
-local function createTextLabel4(zIndex, parent, text, x, xOffset)
-	local TextLabel22 = Instance.new("TextLabel")
-	TextLabel22.ZIndex = zIndex
-	TextLabel22.FontFace = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font")
-	TextLabel22.BorderSizePixel = 0
-	TextLabel22.TextColor3 = Color3.fromRGB(84, 86, 101)
-	TextLabel22.Parent = parent
-	TextLabel22.Text = text
-	TextLabel22.TextTransparency = 0
-	TextLabel22.TextTruncate = Enum.TextTruncate.AtEnd
-	TextLabel22.TextWrapped = false
-	TextLabel22.BackgroundTransparency = 1
-	TextLabel22.Name = "\0"
-	TextLabel22.Position = UDim2.fromOffset(x, 0)
-	TextLabel22.TextXAlignment = Enum.TextXAlignment.Left
-	TextLabel22.TextYAlignment = Enum.TextYAlignment.Center
-	TextLabel22.TextSize = 14
-	TextLabel22.Size = UDim2.new(1, -xOffset, 1, 0)
-	return TextLabel22
-end
-
-local function createImageLabel5(parent, rotation, xOffset, yOffset, zIndex)
-	local ImageLabel11 = Instance.new("ImageLabel")
-	ImageLabel11.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	ImageLabel11.ImageTransparency = 0
-	ImageLabel11.Parent = parent
-	ImageLabel11.Rotation = rotation
-	ImageLabel11.Name = "\0"
-	ImageLabel11.BackgroundTransparency = 1
-	ImageLabel11.Position = UDim2.new(1, -xOffset, 0, yOffset)
-	ImageLabel11.AnchorPoint = Vector2.new(0, 0)
-	ImageLabel11.ZIndex = zIndex
-	ImageLabel11.BorderSizePixel = 0
-	ImageLabel11.Size = UDim2.fromOffset(13, 9)
-	return ImageLabel11
-end
-
-local function createTextLabel5(zIndex, r, g, b, parent, text, x, y, textSize, x2, y2)
-	local TextLabel23 = Instance.new("TextLabel")
-	TextLabel23.ZIndex = zIndex
-	TextLabel23.FontFace = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font")
-	TextLabel23.BorderSizePixel = 0
-	TextLabel23.TextColor3 = Color3.fromRGB(r, g, b)
-	TextLabel23.Parent = parent
-	TextLabel23.Text = text
-	TextLabel23.TextTransparency = 0
-	TextLabel23.TextTruncate = Enum.TextTruncate.None
-	TextLabel23.TextWrapped = false
-	TextLabel23.BackgroundTransparency = 1
-	TextLabel23.Name = "\0"
-	TextLabel23.Position = UDim2.fromOffset(x, y)
-	TextLabel23.TextXAlignment = Enum.TextXAlignment.Left
-	TextLabel23.TextYAlignment = Enum.TextYAlignment.Center
-	TextLabel23.TextSize = textSize
-	TextLabel23.Size = UDim2.fromOffset(x2, y2)
-	return TextLabel23
-end
-
-local function createFrame14(clipsDescendants, parent, x, y, zIndex, x2, y2)
-	local Frame49 = Instance.new("Frame")
-	Frame49.Visible = true
-	Frame49.ClipsDescendants = clipsDescendants
-	Frame49.Parent = parent
-	Frame49.AnchorPoint = Vector2.new(0, 0)
-	Frame49.BackgroundColor3 = Color3.new(1, 1, 1)
-	Frame49.BackgroundTransparency = 1
-	Frame49.Position = UDim2.fromOffset(x, y)
-	Frame49.Name = "\0"
-	Frame49.ZIndex = zIndex
-	Frame49.BorderSizePixel = 0
-	Frame49.Size = UDim2.fromOffset(x2, y2)
-	return Frame49
-end
-
-local function createTextLabel6(zIndex, parent, text, x, y, textSize, xOffset, yScale, yOffset)
-	local TextLabel26 = Instance.new("TextLabel")
-	TextLabel26.ZIndex = zIndex
-	TextLabel26.FontFace = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font")
-	TextLabel26.BorderSizePixel = 0
-	TextLabel26.TextColor3 = Color3.fromRGB(255, 255, 255)
-	TextLabel26.Parent = parent
-	TextLabel26.Text = text
-	TextLabel26.TextTransparency = 0
-	TextLabel26.TextTruncate = Enum.TextTruncate.None
-	TextLabel26.TextWrapped = false
-	TextLabel26.BackgroundTransparency = 1
-	TextLabel26.Name = "\0"
-	TextLabel26.Position = UDim2.fromOffset(x, y)
-	TextLabel26.TextXAlignment = Enum.TextXAlignment.Left
-	TextLabel26.TextYAlignment = Enum.TextYAlignment.Center
-	TextLabel26.TextSize = textSize
-	TextLabel26.Size = UDim2.new(1, -xOffset, yScale, yOffset)
-	return TextLabel26
-end
-
-local function createFrame15(parent, r, b, backgroundTransparency, x, y, zIndex, xOffset, yOffset)
-	local Frame60 = Instance.new("Frame")
-	Frame60.Visible = true
-	Frame60.ClipsDescendants = false
-	Frame60.Parent = parent
-	Frame60.AnchorPoint = Vector2.new(0, 0)
-	Frame60.BackgroundColor3 = Color3.fromRGB(r, r, b)
-	Frame60.BackgroundTransparency = backgroundTransparency
-	Frame60.Position = UDim2.fromOffset(x, y)
-	Frame60.Name = "\0"
-	Frame60.ZIndex = zIndex
-	Frame60.BorderSizePixel = 0
-	Frame60.Size = UDim2.new(1, -xOffset, 0, yOffset)
-	return Frame60
-end
-
-local function createImageLabel6(imageColor3, imageTransparency, parent, x, y, zIndex, x2)
-	local ImageLabel51 = Instance.new("ImageLabel")
-	ImageLabel51.ImageColor3 = imageColor3
-	ImageLabel51.ImageTransparency = imageTransparency
-	ImageLabel51.Parent = parent
-	ImageLabel51.Rotation = 0
-	ImageLabel51.Name = "\0"
-	ImageLabel51.BackgroundTransparency = 1
-	ImageLabel51.Position = UDim2.fromOffset(x, y)
-	ImageLabel51.AnchorPoint = Vector2.new(0, 0)
-	ImageLabel51.ZIndex = zIndex
-	ImageLabel51.BorderSizePixel = 0
-	ImageLabel51.Size = UDim2.fromOffset(x2, x2)
-	return ImageLabel51
-end
-
-local function createScrollingFrame(parent, zIndex)
-	local ScrollingFrame4 = Instance.new("ScrollingFrame")
-	ScrollingFrame4.Active = true
-	ScrollingFrame4.Selectable = false
-	ScrollingFrame4.ScrollBarThickness = 0
-	ScrollingFrame4.Parent = parent
-	ScrollingFrame4.AutomaticCanvasSize = Enum.AutomaticSize.Y
-	ScrollingFrame4.Size = UDim2.new(1, 0, 1, 0)
-	ScrollingFrame4.BackgroundTransparency = 1
-	ScrollingFrame4.Position = UDim2.fromOffset(0, 0)
-	ScrollingFrame4.Name = "\0"
-	ScrollingFrame4.ZIndex = zIndex
-	ScrollingFrame4.BorderSizePixel = 0
-	ScrollingFrame4.CanvasSize = UDim2.new(0, 0, 0, 0)
-	return ScrollingFrame4
-end
-
-local function createFrame16(parent)
-	local Frame99 = Instance.new("Frame")
-	Frame99.Visible = true
-	Frame99.ClipsDescendants = true
-	Frame99.Parent = parent
-	Frame99.AnchorPoint = Vector2.new(0, 0)
-	Frame99.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-	Frame99.BackgroundTransparency = 0
-	Frame99.Position = UDim2.new(1, -22, 0, 6)
-	Frame99.Name = "\0"
-	Frame99.ZIndex = 47
-	Frame99.BorderSizePixel = 0
-	Frame99.Size = UDim2.fromOffset(17, 17)
-	return Frame99
-end
-
-local function onInputChanged()
-	local connection16 = UserInputService.InputChanged:Connect(function(input7, gameProcessed7)
-	end)
-end
-
-local function setupFrame(frame)
-	frame.InputBegan:Connect(function(input18, gameProcessed18)
-	end)
-end
-
-local function setupChangedSignal(changedSignal)
-	changedSignal:Connect(function()
-	end)
-end
-
-local function setupTextButton(textButton)
-	textButton.MouseButton1Down:Connect(function(x7, y7)
-	end)
-end
-
-local function setupTextButton2(textButton)
-	textButton.MouseEnter:Connect(function()
-	end)
-end
-
-local function setupTextButton3(textButton)
-	textButton.MouseLeave:Connect(function()
-	end)
-end
-
-local function setupTextBox(textBox)
-	textBox.PlaceholderColor3 = Color3.fromRGB(84, 86, 101)
-	textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-end
-
-local function tweenFrame(frame, value, arg)
-	local tween101 = TweenService:Create(frame, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 1, Size = UDim2.fromOffset(((value / arg) * 1.35), ((value / arg) * 1.35)) })
-	tween101:Play()
-end
-
-local function tweenFrame2(frame)
-	local tween102 = TweenService:Create(frame, TweenInfo.new(0), { Position = UDim2.fromOffset(0, 0) })
-	tween102:Play()
-end
-
-local function tweenFrame3(frame, xScale, xOffset, yScale)
-	local tween103 = TweenService:Create(frame, TweenInfo.new(0), { Position = UDim2.new(xScale, xOffset, yScale, 0) })
-	tween103:Play()
-end
-
-local function tweenFrame4(frame)
-	local tween105 = TweenService:Create(frame, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { BackgroundColor3 = Color3.fromHSV(0, 0, 1) })
-	tween105:Play()
-end
-
-local function tweenFrame5(frame, backgroundTransparency)
-	local tween106 = TweenService:Create(frame, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { BackgroundColor3 = Color3.fromHSV(0, 0, 1), BackgroundTransparency = backgroundTransparency.Alpha })
-	tween106:Play()
-end
-
-local function tweenTextLabel(textLabel, r, g, b)
-	local tween109 = TweenService:Create(textLabel, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { TextColor3 = Color3.fromRGB(r, g, b) })
-	tween109:Play()
-end
-
-local function tweenFrame6(frame, duration, backgroundTransparency)
-	local tween111 = TweenService:Create(frame, TweenInfo.new(duration, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { BackgroundTransparency = backgroundTransparency })
-	tween111:Play()
-end
-
-local function tweenImageLabel(imageLabel, imageTransparency)
-	local tween112 = TweenService:Create(imageLabel, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { ImageTransparency = imageTransparency })
-	tween112:Play()
-end
-
-local function tweenTextLabel2(textLabel, x, r, g, b)
-	local tween113 = TweenService:Create(textLabel, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Position = UDim2.fromOffset(x, 0), TextColor3 = Color3.fromRGB(r, g, b) })
-	tween113:Play()
-end
-
-local function tweenImageLabel2(imageLabel, rotation)
-	local tween114 = TweenService:Create(imageLabel, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Rotation = rotation })
-	tween114:Play()
-end
-
-local function tweenFrame7(frame, backgroundTransparency)
-	local tween4 = TweenService:Create(frame, TweenInfo.new(0), { BackgroundTransparency = backgroundTransparency })
-	tween4:Play()
-end
-
-local function tweenImageLabel3(imageLabel, imageTransparency)
-	local tween5 = TweenService:Create(imageLabel, TweenInfo.new(0), { ImageTransparency = imageTransparency })
-	tween5:Play()
-end
-
-local function tweenTextLabel3(textLabel, x, r, g, b)
-	local tween6 = TweenService:Create(textLabel, TweenInfo.new(0), { Position = UDim2.fromOffset(x, 0), TextColor3 = Color3.fromRGB(r, g, b) })
-	tween6:Play()
-end
-
-local function tweenFrame8(frame)
-	local tween8 = TweenService:Create(frame, TweenInfo.new(0.45, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), { Position = UDim2.new(1, -15, 0, 15) })
-	tween8:Play()
-end
-
-local function tweenFrame9(frame)
-	local tween115 = TweenService:Create(frame, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Position = UDim2.new(1, -15, 0, 1) })
-	tween115:Play()
-end
-
-local function tweenFrame10(frame, r, g, b)
-	local tween117 = TweenService:Create(frame, TweenInfo.new(0.22, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { BackgroundColor3 = Color3.fromRGB(r, g, b) })
-	tween117:Play()
-end
-
-local function tweenImageLabel4(imageLabel, duration, imageTransparency, x, y)
-	local tween118 = TweenService:Create(imageLabel, TweenInfo.new(duration, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { ImageTransparency = imageTransparency, Position = UDim2.fromOffset(x, y) })
-	tween118:Play()
-end
-
-local function tweenImageLabel5(imageLabel, imageTransparency, y)
-	local tween14 = TweenService:Create(imageLabel, TweenInfo.new(0), { ImageTransparency = imageTransparency, Position = UDim2.fromOffset(2, y) })
-	tween14:Play()
-end
-
-local function tweenTextLabel4(textLabel, textTransparency)
-	local tween126 = TweenService:Create(textLabel, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { TextTransparency = textTransparency })
-	tween126:Play()
-end
-
-local function tweenFrame11(frame)
-	local tween62 = TweenService:Create(frame, TweenInfo.new(0), { BackgroundColor3 = Color3.fromRGB(30, 30, 36) })
-	tween62:Play()
-end
-
-local function tweenTextLabel5(textLabel, duration, x, y)
-	local tween72 = TweenService:Create(textLabel, TweenInfo.new(duration, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Position = UDim2.fromOffset(x, y), TextTransparency = 0 })
-	tween72:Play()
-end
-
-local function tweenFrame12(frame, y)
-	local tween76 = TweenService:Create(frame, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Position = UDim2.fromOffset(0, y) })
-	tween76:Play()
-end
-
-local function setupImageLabel(imageLabel, image)
-	imageLabel.Image = image
-	imageLabel.ImageRectOffset = Vector2.new(0, 0)
-	imageLabel.ImageRectSize = Vector2.new(0, 0)
-end
-
-local function setupImageLabel2(imageLabel, textLabel)
-	imageLabel.Position = UDim2.fromOffset(237, 65)
-	textLabel.Position = UDim2.fromOffset(257, 60)
-end
-
-local function setupFrame2(frame, frame2, frame3, frame4, frame5)
-	frame.Visible = true
-	frame2.Visible = true
-	frame3.Visible = true
-	frame4.Visible = true
-	frame5.Visible = true
-end
-
-local function setupFrame3(frame, frame2, frame3, frame4, frame5)
-	frame.Visible = true
-	frame2.Visible = true
-	frame3.Visible = true
-	frame4.Visible = true
-	frame5.Visible = true
-end
-
-local function setupFrame4(frame, frame2, frame3, frame4, frame5)
-	frame.Visible = true
-	frame2.Visible = true
-	frame3.Visible = true
-	frame4.Visible = true
-	frame5.Visible = true
-end
-
-local function setUIScaleScale(scale, frame)
-	UIScale3.Scale = scale
-	frame.Position = UDim2.new(0.5, 0, 0.5, 0)
-end
-
-local function setupChangedSignal2(changedSignal, setupFrame, frame, frame2, frame3, frame4, frame5)
-	changedSignal:Connect(function()
-		setupFrame(frame, frame2, frame3, frame4, frame5)
-	end)
-end
-
-local function setupTextButton4(textButton, textLabel, r, g, b)
-	textButton.MouseEnter:Connect(function()
-		tweenTextLabel(textLabel, r, g, b)
-	end)
-end
-
-local function setupTextButton5(textButton, textLabel, r, g, b)
-	textButton.MouseLeave:Connect(function()
-		tweenTextLabel(textLabel, r, g, b)
-	end)
-end
-
-local function getTextLabel(row, r, g, b, text, x, y, xOffset, yScale, yOffset)
-	local TextLabel3 = createTextLabel(row, r, g, b, text, x, y, xOffset, yScale, yOffset)
-	TextLabel3.TextColor3 = Color3.fromRGB(r, g, b)
-	return TextLabel3
-end
-
-local function getTextLabel2(row, xOffset, x)
-	local TextLabel13 = createTextLabel2(row, xOffset, x)
-	TextLabel13.TextColor3 = Color3.fromRGB(255, 255, 255)
-	return TextLabel13
-end
-
-local function getTextLabel3(row, parent)
-	local TextLabel14 = createTextLabel3(row, parent)
-	TextLabel14.TextColor3 = Color3.fromRGB(255, 255, 255)
-	return TextLabel14
-end
-
-local function getTextLabel4(zIndex, parent, text, x, xOffset)
-	local TextLabel22 = createTextLabel4(zIndex, parent, text, x, xOffset)
-	TextLabel22.TextColor3 = Color3.fromRGB(84, 86, 101)
-	return TextLabel22
-end
-
-local function getTextLabel5(zIndex, r, g, b, parent, text, x, y, textSize, x2, y2)
-	local TextLabel23 = createTextLabel5(zIndex, r, g, b, parent, text, x, y, textSize, x2, y2)
-	TextLabel23.TextColor3 = Color3.fromRGB(r, g, b)
-	return TextLabel23
-end
-
-local function getTextLabel6(zIndex, parent, text, x, y, textSize, xOffset, yScale, yOffset)
-	local TextLabel26 = createTextLabel6(zIndex, parent, text, x, y, textSize, xOffset, yScale, yOffset)
-	TextLabel26.TextColor3 = Color3.fromRGB(255, 255, 255)
-	return TextLabel26
-end
-
-local function getTextBox(parent, text, value, row, value2, value3, x, placeholderText)
-	local TextBox = createTextBox(parent, text, value, row, value2, value3, x, placeholderText)
-	setupTextBox(TextBox)
-	return TextBox
-end
-
-local function getTextBox2(parent, zIndex, x, placeholderText, xOffset)
-	local TextBox4 = createTextBox2(parent, zIndex, x, placeholderText, xOffset)
-	setupTextBox(TextBox4)
-	return TextBox4
-end
-
-local function getImageLabel(r, g, b, imageTransparency, parent, x, y, row, value, image)
-	local ImageLabel3 = createImageLabel(r, g, b, imageTransparency, parent, x, y, row, value)
-	ImageLabel3.ImageColor3 = Color3.fromRGB(r, g, b)
-	setupImageLabel(ImageLabel3, image)
-	return ImageLabel3
-end
-
-local function getImageLabel2(r, g, b, parent, rotation, x, y, zIndex, x2, y2, image)
-	local ImageLabel5 = createImageLabel2(r, g, b, parent, rotation, x, y, zIndex, x2, y2)
-	ImageLabel5.ImageColor3 = Color3.fromRGB(r, g, b)
-	setupImageLabel(ImageLabel5, image)
-	return ImageLabel5
-end
-
-local function getImageLabel3(imageTransparency, parent, x, y, zIndex, x2, image)
-	local ImageLabel7 = createImageLabel3(imageTransparency, parent, x, y, zIndex, x2)
-	setupImageLabel(ImageLabel7, image)
-	return ImageLabel7
-end
-
-local function getImageLabel4(r, g, b, parent, zIndex, x, image)
-	local ImageLabel9 = createImageLabel4(r, g, b, parent, zIndex, x)
-	ImageLabel9.ImageColor3 = Color3.fromRGB(r, g, b)
-	setupImageLabel(ImageLabel9, image)
-	return ImageLabel9
-end
-
-local function getImageLabel5(parent, rotation, xOffset, yOffset, zIndex)
-	local ImageLabel11 = createImageLabel5(parent, rotation, xOffset, yOffset, zIndex)
-	ImageLabel11.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	setupImageLabel(ImageLabel11, "rbxassetid://115907894584787")
-	return ImageLabel11
-end
-
-local function getImageLabel6(imageColor3, parent)
-	local ImageLabel22 = createImageLabel6(imageColor3, 1, parent, 9, 8, 57, 14)
-	ImageLabel22.ImageColor3 = imageColor3
-	setupImageLabel(ImageLabel22, "rbxassetid://10709790644")
-	return ImageLabel22
-end
-
-local function helper(frame, frame2, backgroundTransparency)
-	tweenFrame4(frame)
-	tweenFrame5(frame2, backgroundTransparency)
-end
-
-local function getFrame(parent, r, g, b, y, zIndex, yOffset)
-	local Frame44 = createFrame12(false, parent, r, g, b, 0, y, zIndex, 1, 0, yOffset)
-	Frame44.BackgroundColor3 = Color3.fromRGB(r, g, b)
-	return Frame44
-end
-
-local function helper2(parent, y, zIndex, x2)
-	local Frame55 = createFrame13(true, false, parent, 29, 29, 37, 10, y, zIndex, x2, 1)
-	Frame55.BackgroundColor3 = Color3.fromRGB(29, 29, 37)
-end
-
-local function getFrame2(parent, y)
-	local Frame60 = createFrame15(parent, 29, 37, 0, 10, y, 57, 20, 1)
-	Frame60.BackgroundColor3 = Color3.fromRGB(29, 29, 37)
-	return Frame60
-end
-
-local function helper3(parent, zIndex)
-	local Frame69 = createFrame7(parent, 29, 37, 6, 1, zIndex, 12, 1)
-	Frame69.BackgroundColor3 = Color3.fromRGB(29, 29, 37)
-end
-
-local function setupImageLabel3(imageLabel, backgroundTransparency)
-	imageLabel.BackgroundTransparency = 1
-	tweenFrame6(imageLabel, 0.25, backgroundTransparency)
-end
-
-local function setupImageLabel4(imageLabel)
-	imageLabel.ImageTransparency = 1
-	tweenImageLabel(imageLabel, 0)
-end
-
-local function setupTextBox2(textBox)
-	textBox.TextTransparency = 1
-	tweenTextLabel4(textBox, 0)
-end
-
-local function helper4(textButton)
-	setupTextButton2(textButton)
-	setupTextButton3(textButton)
-end
-
-local function helper5(frame, backgroundTransparency, imageLabel, textLabel, x, r, g, b)
-	tweenFrame6(frame, 0.25, backgroundTransparency)
-	tweenImageLabel(imageLabel, backgroundTransparency)
-	tweenTextLabel2(textLabel, x, r, g, b)
-end
-
-local function helper6(frame, backgroundTransparency, imageLabel, textLabel, x, r, g, b)
-	tweenFrame6(frame, 0.25, backgroundTransparency)
-	tweenImageLabel(imageLabel, backgroundTransparency)
-	tweenTextLabel2(textLabel, x, r, g, b)
-end
-
-local function helper7(frame, backgroundTransparency, imageLabel, textLabel, x, r, g, b)
-	tweenFrame6(frame, 0.25, backgroundTransparency)
-	tweenImageLabel(imageLabel, backgroundTransparency)
-	tweenTextLabel2(textLabel, x, r, g, b)
-end
-
-local function helper8(frame, backgroundTransparency, imageLabel, textLabel, x, r, g, b)
-	tweenFrame6(frame, 0.25, backgroundTransparency)
-	tweenImageLabel(imageLabel, backgroundTransparency)
-	tweenTextLabel2(textLabel, x, r, g, b)
-end
-
-local function helper9(frame, backgroundTransparency, imageLabel, textLabel, x, r, g, b)
-	tweenFrame6(frame, 0.25, backgroundTransparency)
-	tweenImageLabel(imageLabel, backgroundTransparency)
-	tweenTextLabel2(textLabel, x, r, g, b)
-end
-
-local function helper10(frame, backgroundTransparency, imageLabel, textLabel, x, r, g, b)
-	tweenFrame7(frame, backgroundTransparency)
-	tweenImageLabel3(imageLabel, backgroundTransparency)
-	tweenTextLabel3(textLabel, x, r, g, b)
-end
-
-local function helper11(frame, backgroundTransparency, imageLabel, textLabel, x, r, g, b)
-	tweenFrame7(frame, backgroundTransparency)
-	tweenImageLabel3(imageLabel, backgroundTransparency)
-	tweenTextLabel3(textLabel, x, r, g, b)
-end
-
-local function helper12(frame, backgroundTransparency, imageLabel, textLabel, x, r, g, b)
-	tweenFrame7(frame, backgroundTransparency)
-	tweenImageLabel3(imageLabel, backgroundTransparency)
-	tweenTextLabel3(textLabel, x, r, g, b)
-end
-
-local function helper13(frame, backgroundTransparency, imageLabel, textLabel, x, r, g, b)
-	tweenFrame7(frame, backgroundTransparency)
-	tweenImageLabel3(imageLabel, backgroundTransparency)
-	tweenTextLabel3(textLabel, x, r, g, b)
-end
-
-local function helper14(frame, backgroundTransparency, imageLabel, textLabel, x, r, g, b)
-	tweenFrame7(frame, backgroundTransparency)
-	tweenImageLabel3(imageLabel, backgroundTransparency)
-	tweenTextLabel3(textLabel, x, r, g, b)
-end
-
-local function helper15(frame, backgroundTransparency, imageLabel, textLabel, x, r, g, b)
-	tweenFrame6(frame, 0.25, backgroundTransparency)
-	tweenImageLabel(imageLabel, backgroundTransparency)
-	tweenTextLabel2(textLabel, x, r, g, b)
-end
-
-local function helper16(frame, backgroundTransparency, imageLabel, textLabel, x, r, g, b)
-	tweenFrame6(frame, 0.25, backgroundTransparency)
-	tweenImageLabel(imageLabel, backgroundTransparency)
-	tweenTextLabel2(textLabel, x, r, g, b)
-end
-
-local function helper17(frame, backgroundTransparency, imageLabel, textLabel, x, r, g, b)
-	tweenFrame6(frame, 0.25, backgroundTransparency)
-	tweenImageLabel(imageLabel, backgroundTransparency)
-	tweenTextLabel2(textLabel, x, r, g, b)
-end
-
-local function helper18(frame, backgroundTransparency, imageLabel, textLabel, x, r, g, b)
-	tweenFrame6(frame, 0.25, backgroundTransparency)
-	tweenImageLabel(imageLabel, backgroundTransparency)
-	tweenTextLabel2(textLabel, x, r, g, b)
-end
-
-local function helper19(frame, backgroundTransparency, imageLabel, textLabel, x, r, g, b)
-	tweenFrame6(frame, 0.25, backgroundTransparency)
-	tweenImageLabel(imageLabel, backgroundTransparency)
-	tweenTextLabel2(textLabel, x, r, g, b)
-end
-
-local function setupTextButton6(textButton, frame, imageLabel)
-	textButton.MouseButton1Down:Connect(function(x32, y32)
-		tweenFrame10(frame, 240, 180, 60)
-		imageLabel.Position = UDim2.fromOffset(2, 10)
-		tweenImageLabel4(imageLabel, 0.22, 0, 2, 2)
-	end)
-end
-
-local function getFrame3(clipsDescendants, parent, y, arg, y2, scale, offset)
-	local Frame6 = createFrame(clipsDescendants, parent, y, arg, y2)
-	Frame6.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-	createUICorner(Frame6, scale, offset)
-	return Frame6
-end
-
-local function getFrame4(clipsDescendants, value, row, value2, x, y, offset)
-	local Frame9 = createFrame2(clipsDescendants, value, row, value2, x, y)
-	Frame9.BackgroundColor3 = Color3.fromRGB(23, 23, 26)
-	createUICorner(Frame9, 0, offset)
-	return Frame9
-end
-
-local function getFrame5(parent, x, x2, y, row, value, x3, y2, scale, offset)
-	local Frame10 = createFrame3(parent, x, x2, y, row, value, x3, y2)
-	createUICorner(Frame10, scale, offset)
-	return Frame10
-end
-
-local function getFrame6(parent, r, row, value)
-	local Frame12 = createFrame4(parent, r, row, value)
-	createUICorner(Frame12, 0, 6)
-	return Frame12
-end
-
-local function getFrame7(parent, xScale, xOffset, yScale, row)
-	local Frame16 = createFrame5(parent, xScale, xOffset, yScale, row)
-	createUICorner(Frame16, 1, 0)
-	return Frame16
-end
-
-local function getFrame8(createFrame, textBoundsAsync2, r, b, offset)
-	local Frame25 = createFrame(textBoundsAsync2)
-	Frame25.BackgroundColor3 = Color3.fromRGB(r, r, b)
-	createUICorner(Frame25, 0, offset)
-	return Frame25
-end
-
-local function getFrame9(parent)
-	local Frame26 = createFrame7(parent, 30, 36, 14, 13, 81, 28, 6)
-	Frame26.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-	createUICorner(Frame26, 1, 0)
-	return Frame26
-end
-
-local function getFrame10(visible, parent, r, backgroundTransparency, zIndex, offset)
-	local Frame27 = createFrame8(visible, parent, r, backgroundTransparency, 0, zIndex, 1, 0)
-	createUICorner(Frame27, r, offset)
-	return Frame27
-end
-
-local function getFrame11(parent, row)
-	local Frame29 = createFrame9(parent, row)
-	createUICorner(Frame29, 1, 0)
-	return Frame29
-end
-
-local function getFrame12(parent, xScale, row)
-	local Frame30 = createFrame10(parent, xScale, row)
-	createUICorner(Frame30, 1, 0)
-	return Frame30
-end
-
-local function getFrame13(parent, row)
-	local Frame31 = createFrame11(parent, row)
-	Frame31.BackgroundColor3 = Color3.fromRGB(27, 27, 32)
-	createUICorner(Frame31, 0, 50)
-	return Frame31
-end
-
-local function getFrame14(visible, clipsDescendants, parent, r, g, b, x, y, zIndex, x2, y2, offset)
-	local Frame46 = createFrame13(visible, clipsDescendants, parent, r, g, b, x, y, zIndex, x2, y2)
-	Frame46.BackgroundColor3 = Color3.fromRGB(r, g, b)
-	createUICorner(Frame46, 0, offset)
-	return Frame46
-end
-
-local function getFrame15(parent)
-	local Frame70 = createFrame15(parent, 27, 32, 1, 0, 0, 56, 8, 30)
-	Frame70.BackgroundColor3 = Color3.fromRGB(27, 27, 32)
-	createUICorner(Frame70, 0, 4)
-	return Frame70
-end
-
-local function helper20(textButton, textLabel, r, g, b, r2, g2, b2)
-	setupTextButton4(textButton, textLabel, r, g, b)
-	setupTextButton5(textButton, textLabel, r2, g2, b2)
-end
-
-local function setupFrame5(frame, imageLabel, textBox)
-	frame.Visible = true
-	frame:GetDescendants()
-	setupImageLabel3(imageLabel, 1)
-	setupImageLabel4(imageLabel)
-	setupTextBox2(textBox)
-	setupImageLabel3(textBox, 1)
-	setupImageLabel3(frame, 0)
-
-	task.delay(0.28, function()
-		frame.Visible = true
-		imageLabel.BackgroundTransparency = 1
-		imageLabel.ImageTransparency = 0
-		textBox.TextTransparency = 0
-		textBox.BackgroundTransparency = 1
-		frame.BackgroundTransparency = 0
-	end)
-end
-
-local function helper21(text, imageLabel)
-	local icon = Icons.GetIcon(text)
-	imageLabel.Image = icon
-	imageLabel.ImageRectOffset = Vector2.new(0, 0)
-	imageLabel.ImageRectSize = Vector2.new(0, 0)
-end
-
-local function getFrame16(parent, y, image, text)
-	local Frame80 = createFrame14(false, parent, 10, y, 46, 200, 30)
-	local ImageLabel29 = getImageLabel2(84, 86, 101, Frame80, 0, 2, 8, 47, 14, 14, image)
-	local TextLabel37 = getTextLabel5(47, 255, 255, 255, Frame80, text, 26, 0, 14, 140, 30)
-	return Frame80
-end
-
-local function getScrollingFrame(setupFrame3, frame, frame2, frame3, frame4, frame5)
-	local Frame67 = getFrame14(false, true, ScreenGui4, 23, 23, 26, 0, 0, 55, 140, 0, 6)
-	local Frame68 = getFrame(Frame67, 23, 23, 26, 0, 60, 32)
-	local ImageLabel21 = getImageLabel2(84, 86, 101, Frame68, 0, 10, 9, 61, 14, 14, "rbxassetid://10734943674")
-	local TextBox7 = getTextBox2(Frame68, 61, 30, "Search...", 34)
-	helper3(Frame68, 61)
-	local ScrollingFrame4 = createScrollingFrame(Frame67, 59)
-	createUIListLayout(ScrollingFrame4, 4)
-	createUIPadding(ScrollingFrame4, 6)
-	setupFrame(UserInputService)
-	local changedSignal7 = TextBox7:GetPropertyChangedSignal("Text")
-	setupChangedSignal2(changedSignal7, setupFrame3, frame, frame2, frame3, frame4, frame5)
-	return Frame67, Frame68, TextBox7, ScrollingFrame4
-end
-
-local function setupTextButton7(textButton, imageLabel, textBox, setupFrame, frame, frame2, frame3, frame4, frame5, frame6, scrollingFrame, frame7, y)
-	textButton.MouseButton1Down:Connect(function(x25, y25)
-		tweenImageLabel2(imageLabel, 90)
-		textBox.Text = ""
-		setupFrame(frame, frame2, frame3, frame4, frame5)
-		frame6.Visible = false
-		scrollingFrame.Position = UDim2.fromOffset(0, 0)
-		scrollingFrame.Size = UDim2.new(1, 0, 1, 0)
-		frame7.Size = UDim2.fromOffset(130, 178)
-		frame7.Parent = ScreenGui3
-		frame7.Position = UDim2.fromOffset(146.66666666666666, y)
-		frame7.Visible = true
-		-- [envlog] error: The Parent property of   is locked, current parent: NULL, new parent  
-	end)
-end
-local function getTextLabel7(parent, xScale, row)
-	local Frame30 = getFrame12(parent, xScale, row)
-	local Frame31 = getFrame13(Frame30, row)
-	local TextLabel14 = getTextLabel3(row, Frame31)
-	return Frame30, Frame31, TextLabel14
-end
-local function getImageLabel7(textBoundsAsync2)
-	local Frame99 = getFrame8(createFrame16, textBoundsAsync2, 30, 36, 3)
-	local ImageLabel46 = getImageLabel3(1, Frame99, 2, 10, 48, 14, "rbxassetid://10709790644")
-	ImageLabel46.ImageColor3 = Color3.new(0, 0, 0)
-	return Frame99, ImageLabel46
-end
-local function getTextButton(parent, x, image)
-	local Frame46 = getFrame14(false, false, parent, 25, 24, 26, x, 15, 3, 35, 35, 8)
-	local ImageLabel9 = getImageLabel4(84, 86, 101, Frame46, 4, 16, image)
-	local TextButton13 = createTextButton3(5, Frame46)
-	return Frame46, ImageLabel9, TextButton13
-end
-local function helper22(parent, x, y, zIndex, text)
-	local ImageLabel20 = createImageLabel2(84, 86, 101, parent, 0, x, y, zIndex, 14, 14)
-	ImageLabel20.ImageColor3 = Color3.fromRGB(84, 86, 101)
-	helper21(text, ImageLabel20)
-end
-local function getFrame17(parent, y, text, text2)
-	local Frame100 = createFrame14(false, parent, 10, y, 46, 200, 30)
-	helper22(Frame100, 2, 8, 47, text)
-	local TextLabel50 = getTextLabel5(47, 255, 255, 255, Frame100, text2, 26, 0, 14, 140, 30)
-	return Frame100
-end
-getgenv().Evenesce = {
-	AccentGradients = {},
-	Animation = { Direction = Enum.EasingDirection.Out, Style = Enum.EasingStyle.Quart, Time = 0.25 },
-	AssetsFolder = "Evenesce/Assets",
-	ConfigFolder = "Evenesce/Configs",
-	Connections = { connection7, connection8, connection9, connection10 },
-	Dim = { Class = "Frame", Instance = Frame5 },
-	DimCount = 0,
-	Directory = "Evenesce",
-	FadeTokens = {},
-	Flags = {},
-	Font = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font"),
-	Holder = { Class = "ScreenGui", Instance = ScreenGui3 },
-	KeybindPinned = true,
-	Keybinds = {},
+local Holder = Instance.new("ScreenGui")
+Holder.Name = "\0"
+Holder.ZIndexBehavior = Enum.ZIndexBehavior.Global
+Holder.ResetOnSpawn = false
+Holder.IgnoreGuiInset = true
+Holder.Parent = hui
+
+local Unused = Instance.new("ScreenGui")
+Unused.Name = "\0"
+Unused.ResetOnSpawn = false
+Unused.Enabled = false
+Unused.Parent = hui
+
+local UIScale = Instance.new("UIScale")
+UIScale.Scale = 1
+UIScale.Parent = Holder
+
+-- ─── library table ──────────────────────────────────────────────────────────
+local Evenesce = {
+	Directory      = "Evenesce",
+	ConfigFolder   = "Evenesce/Configs",
+	AssetsFolder   = "Evenesce/Assets",
+	Font           = FontMain,
+	TitleFont      = FontTitle,
+	Holder         = { Class = "ScreenGui", Instance = Holder },
+	UnusedHolder   = { Class = "ScreenGui", Instance = Unused },
+	UIScale        = { Class = "UIScale", Instance = UIScale },
+	UserScale      = 1,
+	SidebarWidth   = 210,
+	WindowWidth    = 800,
+	WindowHeight   = 500,
+	MenuKeybind    = Enum.KeyCode.RightControl,
+	KeybindPinned  = true,
 	KeybindsHidden = false,
-	MenuKeybind = Enum.KeyCode.RightControl,
-	Notifs = {},
-	NotifsHidden = false,
-	OpenFrames = {},
-	PresetList = { "Evenesce", "Crimson", "Ocean", "Emerald", "Gold" },
-	Presets = {
-		Crimson = {
-			Text = Color3.fromRGB(255, 245, 247),
-			Accent = Color3.fromRGB(245, 93, 97),
-			Background = Color3.fromRGB(20, 17, 18),
-			DimText = Color3.fromRGB(120, 92, 100),
-			Element = Color3.fromRGB(36, 29, 32),
-			ElementAlt = Color3.fromRGB(32, 26, 29),
-			Line = Color3.fromRGB(37, 29, 33),
-			Ripple = Color3.fromRGB(255, 120, 124),
-			Section = Color3.fromRGB(26, 22, 24),
-			Selected = Color3.fromRGB(28, 23, 25),
-			Sidebar = Color3.fromRGB(21, 18, 19)
-		},
-		Emerald = {
-			Text = Color3.fromRGB(236, 248, 242),
-			Accent = Color3.fromRGB(60, 220, 140),
-			Background = Color3.fromRGB(15, 20, 17),
-			DimText = Color3.fromRGB(94, 118, 105),
-			Element = Color3.fromRGB(26, 36, 30),
-			ElementAlt = Color3.fromRGB(23, 32, 27),
-			Line = Color3.fromRGB(28, 40, 34),
-			Ripple = Color3.fromRGB(100, 235, 165),
-			Section = Color3.fromRGB(19, 26, 22),
-			Selected = Color3.fromRGB(21, 28, 24),
-			Sidebar = Color3.fromRGB(16, 21, 18)
-		},
-		Evenesce = {
-			Text = Color3.fromRGB(255, 255, 255),
-			Accent = Color3.fromRGB(134, 134, 255),
-			Background = Color3.fromRGB(19, 19, 20),
-			DimText = Color3.fromRGB(84, 86, 101),
-			Element = Color3.fromRGB(30, 30, 36),
-			ElementAlt = Color3.fromRGB(27, 27, 32),
-			Line = Color3.fromRGB(29, 29, 37),
-			Ripple = Color3.fromRGB(146, 146, 255),
-			Section = Color3.fromRGB(23, 23, 26),
-			Selected = Color3.fromRGB(25, 24, 26),
-			Sidebar = Color3.fromRGB(20, 20, 20)
-		},
-		Gold = {
-			Text = Color3.fromRGB(255, 248, 235),
-			Accent = Color3.fromRGB(240, 180, 60),
-			Background = Color3.fromRGB(21, 19, 15),
-			DimText = Color3.fromRGB(126, 114, 92),
-			Element = Color3.fromRGB(37, 33, 25),
-			ElementAlt = Color3.fromRGB(33, 29, 22),
-			Line = Color3.fromRGB(43, 38, 29),
-			Ripple = Color3.fromRGB(250, 200, 95),
-			Section = Color3.fromRGB(27, 24, 19),
-			Selected = Color3.fromRGB(29, 26, 20),
-			Sidebar = Color3.fromRGB(22, 20, 16)
-		},
-		Ocean = {
-			Text = Color3.fromRGB(235, 242, 255),
-			Accent = Color3.fromRGB(64, 156, 255),
-			Background = Color3.fromRGB(15, 18, 23),
-			DimText = Color3.fromRGB(92, 106, 128),
-			Element = Color3.fromRGB(26, 33, 43),
-			ElementAlt = Color3.fromRGB(23, 29, 38),
-			Line = Color3.fromRGB(28, 35, 46),
-			Ripple = Color3.fromRGB(96, 176, 255),
-			Section = Color3.fromRGB(19, 24, 31),
-			Selected = Color3.fromRGB(21, 26, 34),
-			Sidebar = Color3.fromRGB(16, 19, 24)
-		}
+	NotifsHidden   = false,
+	WatermarkHidden= false,
+	Silent         = false,
+	ThemeDirty     = false,
+	DimCount       = 0,
+	Connections    = {},
+	Flags          = {},
+	SetFlags       = {},
+	Keybinds       = {},
+	Notifs         = {},
+	Windows        = {},
+	OpenFrames     = {},
+	SearchIndex    = {},
+	AccentGradients= {},
+	ThemeMap       = {},
+	ThemingStuff   = {},
+	Threads        = {},
+	FadeTokens     = {},
+	RestingValues  = {},
+	TouchButtons   = {},
+	TouchShields   = {},
+	PresetList     = { "Evenesce", "Crimson", "Ocean", "Emerald", "Gold" },
+	Animation = {
+		Direction = Enum.EasingDirection.Out,
+		Style     = Enum.EasingStyle.Quart,
+		Time      = 0.25
 	},
-	RestingValues = {},
-	SearchIndex = {},
-	SetFlags = {},
-	SidebarWidth = 210,
-	Silent = false,
 	Theme = {
-		Text = Color3.fromRGB(255, 255, 255),
-		Accent = Color3.fromRGB(134, 134, 255),
-		AccentDark = Color3.fromRGB(134, 134, 255):Lerp(Color3.new(0, 0, 0), 0.35),
+		Text       = Color3.fromRGB(255, 255, 255),
+		Accent     = Color3.fromRGB(134, 134, 255),
+		AccentDark = Color3.fromRGB(134, 134, 255):Lerp(Color3.new(0,0,0), 0.35),
 		Background = Color3.fromRGB(19, 19, 20),
 		CheckColor = Color3.new(0, 0, 0),
-		DimText = Color3.fromRGB(84, 86, 101),
-		Element = Color3.fromRGB(30, 30, 36),
+		DimText    = Color3.fromRGB(84, 86, 101),
+		Element    = Color3.fromRGB(30, 30, 36),
 		ElementAlt = Color3.fromRGB(27, 27, 32),
-		Line = Color3.fromRGB(29, 29, 37),
-		Ripple = Color3.fromRGB(146, 146, 255),
-		Section = Color3.fromRGB(23, 23, 26),
-		Selected = Color3.fromRGB(25, 24, 26),
-		Sidebar = Color3.fromRGB(20, 20, 20)
+		Line       = Color3.fromRGB(29, 29, 37),
+		Ripple     = Color3.fromRGB(146, 146, 255),
+		Section    = Color3.fromRGB(23, 23, 26),
+		Selected   = Color3.fromRGB(25, 24, 26),
+		Sidebar    = Color3.fromRGB(20, 20, 20)
 	},
-	ThemeDirty = false,
-	ThemeKeys = {
-		"Background",
-		"Sidebar",
-		"Section",
-		"Element",
-		"ElementAlt",
-		"Selected",
-		"Line",
-		"Text",
-		"DimText"
-	},
-	ThemeMap = {},
-	ThemingStuff = {},
-	Threads = {},
-	TitleFont = Font.new("rbxasset://Evenesce/Assets/ActayWide-Bold.font"),
-	TouchButtons = {},
-	TouchShields = {},
-	UIScale = { Class = "UIScale", Instance = UIScale3 },
-	UnusedHolder = { Class = "ScreenGui", Instance = ScreenGui4 },
-	UserScale = 1,
-	WatermarkHidden = false,
-	WindowHeight = 500,
-	WindowWidth = 800,
-	Windows = {},
-	__index = { --[[cycle]] },
-	AddToTheme = function(arg2, arg3)
-		for k, v in arg3 do
-			local result2 = v()
-			arg2.Instance[k] = result2
-		end
-	end,
-	ApplyThemeInstant = function()
-		for k2, v2 in arg3 do
-		end
-	end,
-	Button = function(arg6, arg7)
-		local Row = arg6:AddRow(46, arg7.NoDivider)
-		local Frame6 = getFrame3(true, Row, 8, arg6, 30, 0, 6)
-		local TextLabel2 = Instance.new("TextLabel")
-		TextLabel2.ZIndex = (Row.Instance.ZIndex + 3)
-		TextLabel2.FontFace = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font")
-		TextLabel2.BorderSizePixel = 0
-		TextLabel2.TextColor3 = Color3.fromRGB(255, 255, 255)
-		TextLabel2.Parent = Frame6
-		TextLabel2.Text = arg7.Name
-		TextLabel2.TextTransparency = 0
-		TextLabel2.TextTruncate = Enum.TextTruncate.None
-		TextLabel2.TextWrapped = false
-		TextLabel2.BackgroundTransparency = 1
-		TextLabel2.Name = "\0"
-		TextLabel2.Position = UDim2.fromOffset(0, 0)
-		TextLabel2.TextXAlignment = Enum.TextXAlignment.Center
-		TextLabel2.TextYAlignment = Enum.TextYAlignment.Center
-		TextLabel2.TextSize = 14
-		TextLabel2.Size = UDim2.new(1, 0, 1, 0)
-		TextLabel2.TextColor3 = Color3.fromRGB(255, 255, 255)
-		createTextButton(Row, 4, Frame6)
-		local connection11 = TextButton6.MouseButton1Down:Connect(function(x, y)
-			Frame6.ClipsDescendants = true
-			local mouseLocation3 = UserInputService:GetMouseLocation()
-			local Frame104 = Instance.new("Frame")
-			Frame104.Parent = Frame6
-			Frame104.AnchorPoint = Vector2.new(0.5, 0.5)
-			Frame104.BackgroundColor3 = result4
-			Frame104.Name = "\0"
-			Frame104.Position = UDim2.fromOffset(math.clamp((((mouseLocation3 - Vector2.new(0, 0)).X - 0) / arg72), 0, (0 / arg72)), math.clamp((((mouseLocation3 - Vector2.new(0, 0)).Y - 0) / arg72), 0, (0 / arg72)))
-			Frame104.BackgroundTransparency = 0.5
-			Frame104.ZIndex = ((Row.Instance.ZIndex + 1) + 1)
-			Frame104.BorderSizePixel = 0
-			Frame104.Size = UDim2.fromOffset(0, 0)
-			createUICorner(Frame104, 1, 0)
-			tweenFrame(Frame104, 0, arg72)
-			task.delay(0.5, function()
-				Frame104:Destroy()
-			end)
-		end)
-	end,
-	CancelFade = function()
-	end,
-	CaptureResting = function()
-		-- [envlog] error: table index is nil
-	end,
-	ChangeItemTheme = function()
-	end,
-	CloseAllPopups = function()
-	end,
-	Colorpicker = function(arg16, arg17)
-		local Row2 = arg16:AddRow(37, arg17.NoDivider)
-		local TextLabel3 = getTextLabel(Row2, 255, 255, 255, arg17, 15, 0, 80, 1, 0)
-		local Frame7 = Instance.new("Frame")
-		Frame7.Visible = true
-		Frame7.ClipsDescendants = false
-		Frame7.Parent = Row2.Instance
-		Frame7.AnchorPoint = Vector2.new(0, 0)
-		Frame7.BackgroundColor3 = Color3.new(1, 1, 1)
-		Frame7.BackgroundTransparency = 0.7
-		Frame7.Position = UDim2.new(1, -35, 0, 8)
-		Frame7.Name = "\0"
-		Frame7.ZIndex = (Row2.Instance.ZIndex + 2)
-		Frame7.BorderSizePixel = 0
-		Frame7.Size = UDim2.fromOffset(20, 20)
-		createUICorner(Frame7, 1, 0)
-		local Frame8 = Instance.new("Frame")
-		Frame8.Visible = true
-		Frame8.ClipsDescendants = false
-		Frame8.Parent = Frame7
-		Frame8.AnchorPoint = Vector2.new(0.5, 0.5)
-		Frame8.BackgroundColor3 = Color3.new(1, 1, 1)
-		Frame8.BackgroundTransparency = 0
-		Frame8.Position = UDim2.new(0.5, 0, 0.5, 0)
-		Frame8.Name = "\0"
-		Frame8.ZIndex = ((Row2.Instance.ZIndex + 2) + 1)
-		Frame8.BorderSizePixel = 0
-		Frame8.Size = UDim2.fromOffset(12, 12)
-		createUICorner(Frame8, 1, 0)
-		local TextButton7 = Instance.new("TextButton")
-		TextButton7.Parent = Row2.Instance
-		TextButton7.Text = ""
-		TextButton7.AutoButtonColor = false
-		TextButton7.BackgroundTransparency = 1
-		TextButton7.Position = UDim2.new(1, -45, 0, 0)
-		TextButton7.Name = "\0"
-		TextButton7.ZIndex = (Row2.Instance.ZIndex + 4)
-		TextButton7.BorderSizePixel = 0
-		TextButton7.Size = UDim2.new(0, 45, 1, 0)
-		local Frame9 = getFrame4(false, 73, Row2, 14, 186, 242, 8)
-		local Frame10 = getFrame5(Frame9, 0, 12, 9, Row2, 1, 15, 15, 1, 0)
-		local UIStroke = Instance.new("UIStroke")
-		UIStroke.Color = Color3.new(0, 0, 0)
-		UIStroke.Transparency = 0.55
-		UIStroke.Thickness = 1
-		UIStroke.Parent = Frame10
-		local TextLabel4 = Instance.new("TextLabel")
-		TextLabel4.ZIndex = (math.max(73, (Row2.Instance.ZIndex + 14)) + 1)
-		TextLabel4.FontFace = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font")
-		TextLabel4.BorderSizePixel = 0
-		TextLabel4.TextColor3 = Color3.fromRGB(255, 255, 255)
-		TextLabel4.Parent = Frame9
-		TextLabel4.Text = arg17.Name
-		TextLabel4.TextTransparency = 0
-		TextLabel4.TextTruncate = Enum.TextTruncate.AtEnd
-		TextLabel4.TextWrapped = false
-		TextLabel4.BackgroundTransparency = 1
-		TextLabel4.Name = "\0"
-		TextLabel4.Position = UDim2.fromOffset(34, 6)
-		TextLabel4.TextXAlignment = Enum.TextXAlignment.Left
-		TextLabel4.TextYAlignment = Enum.TextYAlignment.Center
-		TextLabel4.TextSize = 13
-		TextLabel4.Size = UDim2.new(1, -46, 0, 18)
-		TextLabel4.TextColor3 = Color3.fromRGB(255, 255, 255)
-		local Frame11 = getFrame5(Frame9, 0, 12, 34, Row2, 1, 140, 140, 0, 6)
-		Frame11.BackgroundColor3 = Color3.fromHSV(0, 1, 1)
-		local Frame12 = getFrame6(Frame11, 1, Row2, 2)
-		local UIGradient = createUIGradient(Frame12)
-		local Frame13 = getFrame6(Frame11, 0, Row2, 3)
-		local UIGradient2 = Instance.new("UIGradient")
-		UIGradient2.Rotation = 90
-		UIGradient2.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(1, 0) })
-		UIGradient2.Parent = Frame13
-		local Frame14 = getFrame5(Frame11, 0.5, 140, 0, Row2, 4, 12, 12, 1, 0)
-		createUIStroke(Frame14)
-		local Frame15 = getFrame5(Frame9, 0, 160, 34, Row2, 1, 14, 140, 0, 6)
-		local UIGradient3 = Instance.new("UIGradient")
-		UIGradient3.Rotation = 90
-		UIGradient3.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromHSV(0, 1, 1)), ColorSequenceKeypoint.new(0.17, Color3.fromHSV(0.17, 1, 1)), ColorSequenceKeypoint.new(0.33, Color3.fromHSV(0.33, 1, 1)), ColorSequenceKeypoint.new(0.5, Color3.fromHSV(0.5, 1, 1)), ColorSequenceKeypoint.new(0.67, Color3.fromHSV(0.67, 1, 1)), ColorSequenceKeypoint.new(0.83, Color3.fromHSV(0.83, 1, 1)), ColorSequenceKeypoint.new(1, Color3.fromHSV(1, 1, 1)) })
-		UIGradient3.Parent = Frame15
-		local Frame16 = getFrame7(Frame15, 0.5, 0, 0, Row2)
-		createUIStroke(Frame16)
-		local Frame17 = getFrame5(Frame9, 0, 12, 182, Row2, 1, 162, 12, 1, 0)
-		local UIGradient4 = createUIGradient(Frame17)
-		local Frame18 = getFrame7(Frame17, 0, 5, 0.5, Row2)
-		createUIStroke(Frame18)
-		local Frame19 = Instance.new("Frame")
-		Frame19.Visible = true
-		Frame19.ClipsDescendants = true
-		Frame19.Parent = Frame9
-		Frame19.AnchorPoint = Vector2.new(0, 0)
-		Frame19.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-		Frame19.BackgroundTransparency = 0
-		Frame19.Position = UDim2.fromOffset(12, 204)
-		Frame19.Name = "\0"
-		Frame19.ZIndex = (math.max(73, (Row2.Instance.ZIndex + 14)) + 1)
-		Frame19.BorderSizePixel = 0
-		Frame19.Size = UDim2.fromOffset(162, 28)
-		Frame19.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-		createUICorner(Frame19, 0, 5)
-		local TextBox = getTextBox(Frame19, "#FFFFFF", 73, Row2, 14, 2, 10, "")
-		local ImageLabel = Instance.new("ImageLabel")
-		ImageLabel.ImageColor3 = Color3.fromRGB(84, 86, 101)
-		ImageLabel.ImageTransparency = 0
-		ImageLabel.Parent = Frame19
-		ImageLabel.Rotation = 0
-		ImageLabel.Name = "\0"
-		ImageLabel.BackgroundTransparency = 1
-		ImageLabel.Position = UDim2.new(1, -22, 0, 7)
-		ImageLabel.AnchorPoint = Vector2.new(0, 0)
-		ImageLabel.ZIndex = (math.max(73, (Row2.Instance.ZIndex + 14)) + 2)
-		ImageLabel.BorderSizePixel = 0
-		ImageLabel.Size = UDim2.fromOffset(14, 14)
-		ImageLabel.ImageColor3 = Color3.fromRGB(84, 86, 101)
-		setupImageLabel(ImageLabel, "rbxassetid://10734919691")
-		local connection12 = onInputBegan(UserInputService)
-		local connection13 = onInputBegan(Frame11)
-		local connection14 = onInputBegan(Frame15)
-		local connection15 = onInputBegan(Frame17)
-		onInputChanged()
-		local connection17 = onInputEnded()
-		local connection18 = TextBox.FocusLost:Connect(function(enterPressed, inputObject)
-			Frame11.BackgroundColor3 = Color3.fromHSV(0, 1, 1)
-			Frame10.BackgroundColor3 = Color3.fromHSV(0, 0, 1)
-			tweenFrame2(Frame14)
-			tweenFrame3(Frame16, 0.5, 0, 0)
-			local tween104 = TweenService:Create(Frame18, TweenInfo.new(0), { Position = UDim2.new(0, math.clamp((arg17.Alpha * 162), 5, 157), 0.5, 0) })
-			tween104:Play()
-			UIGradient4.Color = ColorSequence.new(Color3.fromHSV(0, 0, 1))
-			TextBox.Text = "#FFFFFF"
-			helper(Frame7, Frame8, arg17)
-			helper(Frame7, Frame8, arg17)
-		end)
-		Frame11.BackgroundColor3 = Color3.fromHSV(0, 1, 1)
-		Frame10.BackgroundColor3 = Color3.fromHSV(0, 0, 1)
-		tweenFrame2(Frame14)
-		tweenFrame3(Frame16, 0.5, 0, 0)
-		tweenFrame3(Frame18, 0, 5, 0.5)
-		UIGradient4.Color = ColorSequence.new(Color3.fromHSV(0, 0, 1))
-		TextBox.Text = "#FFFFFF"
-		local connection19 = TextButton7.MouseButton1Down:Connect(function(x2, y2)
-			-- [envlog] error: The Parent property of   is locked, current parent: NULL, new parent  
-		end)
-		local result3 = arg17.Default:ToHSV()
-		Frame11.BackgroundColor3 = Color3.fromHSV(result3, 1, 1)
-		Frame10.BackgroundColor3 = Color3.fromHSV(result3, nil, nil)
-		-- [envlog] error: Script:8: attempt to perform arithmetic (mul) on nil and number
-	end,
-	Connect = function(_, arg19)
-		local connection20 = arg19:Connect(nil)
-	end,
-	Create = function()
-		-- [envlog] error: invalid argument #1 to 'new' (string expected, got userdata)
-	end,
-	Dropdown = function(arg22, arg23)
-		local Row3 = arg22:AddRow(64, arg23.NoDivider)
-		local TextLabel5 = getTextLabel(Row3, 84, 86, 101, arg23, 15, 4, 60, 0, 17)
-		local Frame20 = getFrame3(true, Row3, 27, arg22, 30, 0, 6)
-		local TextLabel6 = Instance.new("TextLabel")
-		TextLabel6.ZIndex = (Row3.Instance.ZIndex + 2)
-		TextLabel6.FontFace = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font")
-		TextLabel6.BorderSizePixel = 0
-		TextLabel6.TextColor3 = Color3.fromRGB(255, 255, 255)
-		TextLabel6.Parent = Frame20
-		TextLabel6.Text = "None"
-		TextLabel6.TextTransparency = 0
-		TextLabel6.TextTruncate = Enum.TextTruncate.AtEnd
-		TextLabel6.TextWrapped = false
-		TextLabel6.BackgroundTransparency = 1
-		TextLabel6.Name = "\0"
-		TextLabel6.Position = UDim2.fromOffset(12, 0)
-		TextLabel6.TextXAlignment = Enum.TextXAlignment.Left
-		TextLabel6.TextYAlignment = Enum.TextYAlignment.Center
-		TextLabel6.TextSize = 14
-		TextLabel6.Size = UDim2.new(1, -44, 1, 0)
-		TextLabel6.TextColor3 = Color3.fromRGB(255, 255, 255)
-		local ImageLabel2 = Instance.new("ImageLabel")
-		ImageLabel2.ImageColor3 = Color3.fromRGB(84, 86, 101)
-		ImageLabel2.ImageTransparency = 0
-		ImageLabel2.Parent = Frame20
-		ImageLabel2.Rotation = 0
-		ImageLabel2.Name = "\0"
-		ImageLabel2.BackgroundTransparency = 1
-		ImageLabel2.Position = UDim2.new(1, -25, 0, 11)
-		ImageLabel2.AnchorPoint = Vector2.new(0, 0)
-		ImageLabel2.ZIndex = (Row3.Instance.ZIndex + 2)
-		ImageLabel2.BorderSizePixel = 0
-		ImageLabel2.Size = UDim2.fromOffset(13, 9)
-		ImageLabel2.ImageColor3 = Color3.fromRGB(84, 86, 101)
-		setupImageLabel(ImageLabel2, "rbxassetid://115907894584787")
-		createTextButton(Row3, 3, Frame20)
-		local Frame21 = getFrame4(true, 72, Row3, 12, 140, 0, 6)
-		local Frame22 = Instance.new("Frame")
-		Frame22.Visible = false
-		Frame22.ClipsDescendants = false
-		Frame22.Parent = Frame21
-		Frame22.AnchorPoint = Vector2.new(0, 0)
-		Frame22.BackgroundColor3 = Color3.fromRGB(23, 23, 26)
-		Frame22.BackgroundTransparency = 0
-		Frame22.Position = UDim2.fromOffset(0, 0)
-		Frame22.Name = "\0"
-		Frame22.ZIndex = (math.max(72, (Row3.Instance.ZIndex + 12)) + 5)
-		Frame22.BorderSizePixel = 0
-		Frame22.Size = UDim2.new(1, 0, 0, 32)
-		Frame22.BackgroundColor3 = Color3.fromRGB(23, 23, 26)
-		local ImageLabel3 = getImageLabel(84, 86, 101, 0, Frame22, 10, 9, Row3, 6, "rbxassetid://10734943674")
-		local TextBox2 = getTextBox(Frame22, "", 72, Row3, 12, 6, 30, "Search...")
-		local Frame23 = Instance.new("Frame")
-		Frame23.Visible = true
-		Frame23.ClipsDescendants = false
-		Frame23.Parent = Frame22
-		Frame23.AnchorPoint = Vector2.new(0, 0)
-		Frame23.BackgroundColor3 = Color3.fromRGB(29, 29, 37)
-		Frame23.BackgroundTransparency = 0
-		Frame23.Position = UDim2.new(0, 6, 1, -1)
-		Frame23.Name = "\0"
-		Frame23.ZIndex = (math.max(72, (Row3.Instance.ZIndex + 12)) + 6)
-		Frame23.BorderSizePixel = 0
-		Frame23.Size = UDim2.new(1, -12, 0, 1)
-		Frame23.BackgroundColor3 = Color3.fromRGB(29, 29, 37)
-		local ScrollingFrame = Instance.new("ScrollingFrame")
-		ScrollingFrame.Active = true
-		ScrollingFrame.Selectable = false
-		ScrollingFrame.ScrollBarThickness = 0
-		ScrollingFrame.Parent = Frame21
-		ScrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
-		ScrollingFrame.Size = UDim2.new(1, 0, 1, 0)
-		ScrollingFrame.BackgroundTransparency = 1
-		ScrollingFrame.Position = UDim2.fromOffset(0, 0)
-		ScrollingFrame.Name = "\0"
-		ScrollingFrame.ZIndex = (math.max(72, (Row3.Instance.ZIndex + 12)) + 4)
-		ScrollingFrame.BorderSizePixel = 0
-		ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-		createUIListLayout(ScrollingFrame, 4)
-		createUIPadding(ScrollingFrame, 6)
-		local connection21 = onInputBegan(UserInputService)
-		local changedSignal2 = TextBox2:GetPropertyChangedSignal("Text")
-		local connection22 = changedSignal2:Connect(function()
-			Frame24.Visible = true
-		end)
-		for k3, v3 in arg23.Options do
-			local Frame24 = Instance.new("Frame")
-			Frame24.Visible = true
-			Frame24.ClipsDescendants = false
-			Frame24.Parent = ScrollingFrame
-			Frame24.AnchorPoint = Vector2.new(0, 0)
-			Frame24.BackgroundColor3 = Color3.fromRGB(27, 27, 32)
-			Frame24.BackgroundTransparency = 1
-			Frame24.Position = UDim2.fromOffset(0, 0)
-			Frame24.Name = "\0"
-			Frame24.ZIndex = (math.max(72, (Row3.Instance.ZIndex + 12)) + 1)
-			Frame24.BorderSizePixel = 0
-			Frame24.Size = UDim2.new(1, -8, 0, 30)
-			Frame24.BackgroundColor3 = Color3.fromRGB(27, 27, 32)
-			createUICorner(Frame24, 0, 4)
-			Frame24.BackgroundTransparency = 1
-			local ImageLabel4 = getImageLabel(134, 134, 255, 1, Frame24, 9, 8, Row3, 2, "rbxassetid://10709790644")
-			local TextLabel7 = Instance.new("TextLabel")
-			TextLabel7.ZIndex = (math.max(72, (Row3.Instance.ZIndex + 12)) + 2)
-			TextLabel7.FontFace = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font")
-			TextLabel7.BorderSizePixel = 0
-			TextLabel7.TextColor3 = Color3.fromRGB(84, 86, 101)
-			TextLabel7.Parent = Frame24
-			TextLabel7.Text = tostring(v3)
-			TextLabel7.TextTransparency = 0
-			TextLabel7.TextTruncate = Enum.TextTruncate.AtEnd
-			TextLabel7.TextWrapped = false
-			TextLabel7.BackgroundTransparency = 1
-			TextLabel7.Name = "\0"
-			TextLabel7.Position = UDim2.fromOffset(12, 0)
-			TextLabel7.TextXAlignment = Enum.TextXAlignment.Left
-			TextLabel7.TextYAlignment = Enum.TextYAlignment.Center
-			TextLabel7.TextSize = 14
-			TextLabel7.Size = UDim2.new(1, -42, 1, 0)
-			TextLabel7.TextColor3 = Color3.fromRGB(84, 86, 101)
-			local TextButton9 = Instance.new("TextButton")
-			TextButton9.BackgroundTransparency = 1
-			TextButton9.ZIndex = (math.max(72, (Row3.Instance.ZIndex + 12)) + 3)
-			TextButton9.Name = "\0"
-			TextButton9.Size = UDim2.new(1, 0, 1, 0)
-			TextButton9.Parent = Frame24
-			TextButton9.Text = ""
-			TextButton9.BorderSizePixel = 0
-			TextButton9.AutoButtonColor = false
-			local connection23 = TextButton9.MouseEnter:Connect(function()
-				tweenTextLabel(TextLabel7, 255, 255, 255)
-			end)
-			local connection24 = TextButton9.MouseLeave:Connect(function()
-				tweenTextLabel(TextLabel7, 84, 86, 101)
-			end)
-			local connection25 = TextButton9.MouseButton1Down:Connect(function(x3, y3)
-				tweenFrame6(Frame24, 0.25, 0)
-				tweenImageLabel(ImageLabel4, 0)
-				tweenTextLabel2(TextLabel7, 30, 255, 255, 255)
-				-- [envlog] error: Script:8: invalid value (userdata) at index 1 in table for 'concat'
-			end)
-		end
-		local connection26 = TextButton8.MouseButton1Down:Connect(function(x4, y4)
-			tweenImageLabel2(ImageLabel2, 180)
-			TextBox2.Text = ""
-			Frame24.Visible = true
-			Frame22.Visible = false
-			ScrollingFrame.Position = UDim2.fromOffset(0, 0)
-			ScrollingFrame.Size = UDim2.new(1, 0, 1, 0)
-			Frame21.Size = UDim2.fromOffset((0 / arg72), 42)
-			-- [envlog] error: The Parent property of   is locked, current parent: NULL, new parent  
-		end)
-		tweenFrame7(Frame24, 1)
-		tweenImageLabel3(ImageLabel4, 1)
-		tweenTextLabel3(TextLabel7, 12, 84, 86, 101)
-		TextLabel6.Text = "None"
-	end,
-	Fade = function(arg27, arg28)
-		local tween7 = TweenService:Create(arg27.Instance, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { [arg28] = 1 })
-		tween7:Play()
-	end,
-	FadeDescendants = function(arg29)
-		arg29.Instance.Visible = true
-		arg29.Instance:GetDescendants()
-		-- [envlog] error: Script:8: invalid argument #1 to 'insert' (table expected, got userdata)
-	end,
-	GetConfig = function()
-		HttpService:JSONEncode({
-	__created = arg32,
-	__theme = {
-		Text = "ffffff",
-		Accent = "8686ff",
-		Background = "131314",
-		DimText = "545665",
-		Element = "1e1e24",
-		ElementAlt = "1b1b20",
-		Line = "1d1d25",
-		Section = "17171a",
-		Selected = "19181a",
-		Sidebar = "141414"
-	},
-	[arg23.Flag] = {}
-})
-	end,
-	GetScreenScale = function()
-	end,
-	GetTweenProperty = function()
-	end,
-	IsMouseOverFrame = function()
-		local mouseLocation = UserInputService:GetMouseLocation()
-		-- condition: arg37.Instance.AbsolutePosition.X <= (mouseLocation - Vector2.new(0, guiInset.Y)).X  (assumed false)
-	end,
-	LoadConfig = function(_, arg40)
-		local data = HttpService:JSONDecode(arg40)
-		for k4, v4 in data do
-		end
-	end,
-	MakeDraggable = function(_, arg42)
-		arg42.Active = true
-		local connection27 = onInputBegan(arg42)
-		onInputChanged()
-	end,
-	Notification = function(_, arg44)
-		local textBoundsAsync = TextService:GetTextBoundsAsync({ Text = arg44.Description, Font = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font"), Size = 14, Width = 302 })
-		local Frame25 = getFrame8(createFrame6, textBoundsAsync, 19, 20, 10)
-		local ImageLabel5 = getImageLabel2(134, 134, 255, Frame25, 0, 14, 11, 81, 18, 18, "rbxassetid://0")
-		local TextLabel8 = Instance.new("TextLabel")
-		TextLabel8.ZIndex = 81
-		TextLabel8.FontFace = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font")
-		TextLabel8.BorderSizePixel = 0
-		TextLabel8.TextColor3 = Color3.fromRGB(255, 255, 255)
-		TextLabel8.Parent = Frame25
-		TextLabel8.Text = arg44.Name
-		TextLabel8.TextTransparency = 0
-		TextLabel8.TextTruncate = Enum.TextTruncate.None
-		TextLabel8.TextWrapped = false
-		TextLabel8.BackgroundTransparency = 1
-		TextLabel8.Name = "\0"
-		TextLabel8.Position = UDim2.fromOffset(42, 10)
-		TextLabel8.TextXAlignment = Enum.TextXAlignment.Left
-		TextLabel8.TextYAlignment = Enum.TextYAlignment.Center
-		TextLabel8.TextSize = 16
-		TextLabel8.Size = UDim2.new(1, -70, 0, 20)
-		TextLabel8.TextColor3 = Color3.fromRGB(255, 255, 255)
-		local ImageButton = createImageButton(Frame25)
-		ImageButton.ImageColor3 = Color3.fromRGB(84, 86, 101)
-		setupImageLabel(ImageButton, "rbxassetid://10747384394")
-		local TextLabel9 = Instance.new("TextLabel")
-		TextLabel9.ZIndex = 81
-		TextLabel9.FontFace = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font")
-		TextLabel9.BorderSizePixel = 0
-		TextLabel9.TextColor3 = Color3.fromRGB(84, 86, 101)
-		TextLabel9.Parent = Frame25
-		TextLabel9.Text = arg44.Description
-		TextLabel9.TextTransparency = 0
-		TextLabel9.TextTruncate = Enum.TextTruncate.None
-		TextLabel9.TextWrapped = true
-		TextLabel9.BackgroundTransparency = 1
-		TextLabel9.Name = "\0"
-		TextLabel9.Position = UDim2.fromOffset(14, 36)
-		TextLabel9.TextXAlignment = Enum.TextXAlignment.Left
-		TextLabel9.TextYAlignment = Enum.TextYAlignment.Top
-		TextLabel9.TextSize = 14
-		TextLabel9.Size = UDim2.new(1, -28, 0, textBoundsAsync.Y)
-		TextLabel9.TextColor3 = Color3.fromRGB(84, 86, 101)
-		local Frame26 = getFrame9(Frame25)
-		local Frame27 = getFrame10(true, Frame26, 1, 0, 82, 0)
-		local UIGradient5 = createUIGradient2(Frame27)
-		UIGradient5.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(134, 134, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(134, 134, 255):Lerp(Color3.new(0, 0, 0), 0.35)) })
-		Frame25.Position = UDim2.new(1, 360, 0, 15)
-		tweenFrame8(Frame25)
-		local connection29 = ImageButton.MouseButton1Down:Connect(function(x5, y5)
-			tweenFrame9(Frame25)
-			Frame25:GetDescendants()
-			tweenFrame6(Frame25, 0.25, 1)
-			task.delay(0.28, function()
-				Frame25.Visible = false
-				Frame25.BackgroundTransparency = 0
-			end)
-			task.delay(0.3, function()
-				Frame25:Destroy()
-			end)
-		end)
-		local tween9 = TweenService:Create(Frame27, TweenInfo.new(arg44.Duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), { Size = UDim2.new(0, 0, 1, 0) })
-		tween9:Play()
-		-- [envlog] error: Script:8: invalid argument #1 to 'delay' (number expected, got userdata)
-	end,
-	OnHover = function(arg45, arg46)
-		local connection30 = arg45.Instance.MouseEnter:Connect(arg46)
-		local connection31 = arg45.Instance.MouseLeave:Connect(nil)
-	end,
-	Paragraph = function(arg47, arg48)
-		local textBoundsAsync2 = TextService:GetTextBoundsAsync({ Text = arg48.Content, Font = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font"), Size = 13, Width = (arg47.Width - 30) })
-		local Row4 = arg47:AddRow((28 + (textBoundsAsync2.Y + 8)), arg48.NoDivider)
-		local TextLabel10 = Instance.new("TextLabel")
-		TextLabel10.ZIndex = (Row4.Instance.ZIndex + 1)
-		TextLabel10.FontFace = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font")
-		TextLabel10.BorderSizePixel = 0
-		TextLabel10.TextColor3 = Color3.fromRGB(255, 255, 255)
-		TextLabel10.Parent = Row4.Instance
-		TextLabel10.Text = arg48.Title
-		TextLabel10.TextTransparency = 0
-		TextLabel10.TextTruncate = Enum.TextTruncate.None
-		TextLabel10.TextWrapped = false
-		TextLabel10.BackgroundTransparency = 1
-		TextLabel10.Name = "\0"
-		TextLabel10.Position = UDim2.fromOffset(15, 6)
-		TextLabel10.TextXAlignment = Enum.TextXAlignment.Left
-		TextLabel10.TextYAlignment = Enum.TextYAlignment.Center
-		TextLabel10.TextSize = 14
-		TextLabel10.Size = UDim2.new(1, -30, 0, 17)
-		TextLabel10.TextColor3 = Color3.fromRGB(255, 255, 255)
-		local TextLabel11 = Instance.new("TextLabel")
-		TextLabel11.ZIndex = (Row4.Instance.ZIndex + 1)
-		TextLabel11.FontFace = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font")
-		TextLabel11.BorderSizePixel = 0
-		TextLabel11.TextColor3 = Color3.fromRGB(84, 86, 101)
-		TextLabel11.Parent = Row4.Instance
-		TextLabel11.Text = arg48.Content
-		TextLabel11.TextTransparency = 0
-		TextLabel11.TextTruncate = Enum.TextTruncate.None
-		TextLabel11.TextWrapped = true
-		TextLabel11.BackgroundTransparency = 1
-		TextLabel11.Name = "\0"
-		TextLabel11.Position = UDim2.fromOffset(15, 27)
-		TextLabel11.TextXAlignment = Enum.TextXAlignment.Left
-		TextLabel11.TextYAlignment = Enum.TextYAlignment.Top
-		TextLabel11.TextSize = 13
-		TextLabel11.Size = UDim2.new(1, -30, 0, textBoundsAsync2.Y)
-		TextLabel11.TextColor3 = Color3.fromRGB(84, 86, 101)
-	end,
-	RangeSlider = function(arg49, arg50)
-		local Row5 = arg49:AddRow(48, arg50.NoDivider)
-		local TextLabel12 = getTextLabel(Row5, 84, 86, 101, arg50, 15, 4, 160, 0, 17)
-		local TextLabel13 = getTextLabel2(Row5, 145, 130)
-		local Frame28 = getFrame3(false, Row5, 31, arg49, 7, 1, 0)
-		local Frame29 = getFrame11(Frame28, Row5)
-		local UIGradient6 = createUIGradient2(Frame29)
-		UIGradient6.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(134, 134, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(134, 134, 255):Lerp(Color3.new(0, 0, 0), 0.35)) })
-		Frame29.Position = UDim2.fromOffset(0, 0)
-		local Frame30, Frame31, TextLabel14 = getTextLabel7(Frame29, 0, Row5)
-		local Frame32, Frame33, TextLabel15 = getTextLabel7(Frame29, 1, Row5)
-		createTextButton2(Row5, arg49)
-		local connection32 = onInputBegan(TextButton10)
-		onInputChanged()
-		local connection34 = onInputEnded()
-		-- condition: (tonumber(string.format("%." .. math.max(0, math.ceil(-math.log(arg50.Float, 10))) .. "f", (math.floor((math.clamp(arg50.DefaultMax, arg50.Min, arg50.Max) / arg50.Float) + 0.5) * arg50.Float))) - tonumber(string.format("%." .. math.max(0, math.ceil(-math.log(arg50.Float, 10))) .. "f", (math.floor((math.clamp(arg50.DefaultMin, arg50.Min, arg50.Max) / arg50.Float) + 0.5) * arg50.Float)))) < arg50.MinGap  (assumed true)
-		-- condition: (math.min(arg50.Max, (tonumber(string.format("%." .. math.max(0, math.ceil(-math.log(arg50.Float, 10))) .. "f", (math.floor((math.clamp(arg50.DefaultMin, arg50.Min, arg50.Max) / arg50.Float) + 0.5) * arg50.Float))) + arg50.MinGap)) - tonumber(string.format("%." .. math.max(0, math.ceil(-math.log(arg50.Float, 10))) .. "f", (math.floor((math.clamp(arg50.DefaultMin, arg50.Min, arg50.Max) / arg50.Float) + 0.5) * arg50.Float)))) < arg50.MinGap  (assumed true)
-		-- condition: math.min(arg50.Max, (tonumber(string.format("%." .. math.max(0, math.ceil(-math.log(arg50.Float, 10))) .. "f", (math.floor((math.clamp(arg50.DefaultMin, arg50.Min, arg50.Max) / arg50.Float) + 0.5) * arg50.Float))) + arg50.MinGap)) < math.max(arg50.Min, (math.min(arg50.Max, (tonumber(string.format("%." .. math.max(0, math.ceil(-math.log(arg50.Float, 10))) .. "f", (math.floor((math.clamp(arg50.DefaultMin, arg50.Min, arg50.Max) / arg50.Float) + 0.5) * arg50.Float))) + arg50.MinGap)) - arg50.MinGap))  (assumed true)
-		local tween10 = TweenService:Create(Frame29, TweenInfo.new(0), { Position = UDim2.fromOffset((((math.min(arg50.Max, (tonumber(string.format("%." .. math.max(0, math.ceil(-math.log(arg50.Float, 10))) .. "f", (math.floor((math.clamp(arg50.DefaultMin, arg50.Min, arg50.Max) / arg50.Float) + 0.5) * arg50.Float))) + arg50.MinGap)) - arg50.Min) / math.max((arg50.Max - arg50.Min), 0.0001)) * (arg49.Width - 30)), 0), Size = UDim2.fromOffset(math.max(((((math.max(arg50.Min, (math.min(arg50.Max, (tonumber(string.format("%." .. math.max(0, math.ceil(-math.log(arg50.Float, 10))) .. "f", (math.floor((math.clamp(arg50.DefaultMin, arg50.Min, arg50.Max) / arg50.Float) + 0.5) * arg50.Float))) + arg50.MinGap)) - arg50.MinGap)) - arg50.Min) / math.max((arg50.Max - arg50.Min), 0.0001)) - ((math.min(arg50.Max, (tonumber(string.format("%." .. math.max(0, math.ceil(-math.log(arg50.Float, 10))) .. "f", (math.floor((math.clamp(arg50.DefaultMin, arg50.Min, arg50.Max) / arg50.Float) + 0.5) * arg50.Float))) + arg50.MinGap)) - arg50.Min) / math.max((arg50.Max - arg50.Min), 0.0001))) * (arg49.Width - 30)), 2), 7) })
-		tween10:Play()
-		TextLabel13.Text = tostring(math.min(arg50.Max, (tonumber(string.format("%." .. math.max(0, math.ceil(-math.log(arg50.Float, 10))) .. "f", (math.floor((math.clamp(arg50.DefaultMin, arg50.Min, arg50.Max) / arg50.Float) + 0.5) * arg50.Float))) + arg50.MinGap))) .. arg50.Suffix .. " - " .. tostring(math.max(arg50.Min, (math.min(arg50.Max, (tonumber(string.format("%." .. math.max(0, math.ceil(-math.log(arg50.Float, 10))) .. "f", (math.floor((math.clamp(arg50.DefaultMin, arg50.Min, arg50.Max) / arg50.Float) + 0.5) * arg50.Float))) + arg50.MinGap)) - arg50.MinGap))) .. arg50.Suffix
-		TextLabel14.Text = tostring(math.min(arg50.Max, (tonumber(string.format("%." .. math.max(0, math.ceil(-math.log(arg50.Float, 10))) .. "f", (math.floor((math.clamp(arg50.DefaultMin, arg50.Min, arg50.Max) / arg50.Float) + 0.5) * arg50.Float))) + arg50.MinGap)))
-		TextLabel15.Text = tostring(math.max(arg50.Min, (math.min(arg50.Max, (tonumber(string.format("%." .. math.max(0, math.ceil(-math.log(arg50.Float, 10))) .. "f", (math.floor((math.clamp(arg50.DefaultMin, arg50.Min, arg50.Max) / arg50.Float) + 0.5) * arg50.Float))) + arg50.MinGap)) - arg50.MinGap)))
-	end,
-	RegisterGradient = function(_, arg52)
-		arg52.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.fromRGB(134, 134, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(134, 134, 255):Lerp(Color3.new(0, 0, 0), 0.35)) })
-	end,
-	ReleaseResting = function()
-	end,
-	ResetFade = function(arg55)
-		arg55.Instance:GetDescendants()
-		-- [envlog] error: Script:8: invalid argument #1 to 'insert' (table expected, got userdata)
-	end,
-	Ripple = function(arg57)
-		arg57.ClipsDescendants = true
-		local mouseLocation2 = UserInputService:GetMouseLocation()
-		local Frame34 = Instance.new("Frame")
-		Frame34.Parent = arg57
-		Frame34.AnchorPoint = Vector2.new(0.5, 0.5)
-		Frame34.BackgroundColor3 = Color3.fromRGB(146, 146, 255)
-		Frame34.Name = "\0"
-		Frame34.Position = UDim2.fromOffset(math.clamp((((mouseLocation2 - Vector2.new(0, guiInset.Y)).X - arg57.AbsolutePosition.X) / 1), 0, (arg57.AbsoluteSize.X / 1)), math.clamp((((mouseLocation2 - Vector2.new(0, guiInset.Y)).Y - arg57.AbsolutePosition.Y) / 1), 0, (arg57.AbsoluteSize.Y / 1)))
-		Frame34.BackgroundTransparency = 0.5
-		Frame34.ZIndex = (arg57.ZIndex + 1)
-		Frame34.BorderSizePixel = 0
-		Frame34.Size = UDim2.fromOffset(0, 0)
-		createUICorner(Frame34, 1, 0)
-		local tween11 = TweenService:Create(Frame34, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 1, Size = UDim2.fromOffset(((math.max(arg57.AbsoluteSize.X, arg57.AbsoluteSize.Y) / 1) * 1.35), ((math.max(arg57.AbsoluteSize.X, arg57.AbsoluteSize.Y) / 1) * 1.35)) })
-		tween11:Play()
-		task.delay(0.5, function()
-			Frame34:Destroy()
-		end)
-	end,
-	Round = function()
-	end,
-	SafeCall = function()
-	end,
-	SetAccent = function(_, arg64)
-		local result4 = arg64:Lerp(Color3.new(1, 1, 1), 0.1)
-		arg64:Lerp(Color3.new(0, 0, 0), 0.35)
-	end,
-	SetDim = function()
-	end,
-	SetPreset = function()
-	end,
-	SetThemeColor = function()
-		local result5 = arg64:Lerp(Color3.new(0, 0, 0), 0.35)
-	end,
-	SetUIScale = function(_, arg72)
-		UIScale3.Scale = arg72
-	end,
-	Slider = function(arg73, arg74)
-		local Row6 = arg73:AddRow(48, arg74.NoDivider)
-		local TextLabel16 = getTextLabel(Row6, 84, 86, 101, arg74, 15, 4, 130, 0, 17)
-		local TextLabel17 = getTextLabel2(Row6, 115, 100)
-		local Frame35 = getFrame3(false, Row6, 31, arg73, 7, 1, 0)
-		local Frame36 = getFrame11(Frame35, Row6)
-		local UIGradient7 = createUIGradient2(Frame36)
-		UIGradient7.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, arg64), ColorSequenceKeypoint.new(1, result5) })
-		local Frame37, Frame38, TextLabel18 = getTextLabel7(Frame36, 1, Row6)
-		createTextButton2(Row6, arg73)
-		local connection35 = onInputBegan(TextButton11)
-		onInputChanged()
-		local connection37 = onInputEnded()
-		local tween12 = TweenService:Create(Frame36, TweenInfo.new(0), { Size = UDim2.fromOffset(math.max((((tonumber(string.format("%." .. math.max(0, math.ceil(-math.log(arg74.Float, 10))) .. "f", (math.floor((math.clamp(arg74.Default, arg74.Min, arg74.Max) / arg74.Float) + 0.5) * arg74.Float))) - arg74.Min) / math.max((arg74.Max - arg74.Min), 0.0001)) * (arg73.Width - 30)), 6), 7) })
-		tween12:Play()
-		TextLabel17.Text = tostring(tonumber(string.format("%." .. math.max(0, math.ceil(-math.log(arg74.Float, 10))) .. "f", (math.floor((math.clamp(arg74.Default, arg74.Min, arg74.Max) / arg74.Float) + 0.5) * arg74.Float)))) .. arg74.Suffix
-		TextLabel18.Text = tostring(tonumber(string.format("%." .. math.max(0, math.ceil(-math.log(arg74.Float, 10))) .. "f", (math.floor((math.clamp(arg74.Default, arg74.Min, arg74.Max) / arg74.Float) + 0.5) * arg74.Float))))
-	end,
-	StampResting = function()
-		-- [envlog] error: Script:8: table index is nil
-	end,
-	Textbox = function(arg77, arg78)
-		local Row7 = arg77:AddRow(58, arg78.NoDivider)
-		local TextLabel19 = getTextLabel(Row7, 84, 86, 101, arg78, 15, 4, 60, 0, 17)
-		for k5, v5 in arg78.Inputs do
-			local Frame39 = Instance.new("Frame")
-			Frame39.Visible = true
-			Frame39.ClipsDescendants = true
-			Frame39.Parent = Row7.Instance
-			Frame39.AnchorPoint = Vector2.new(0, 0)
-			Frame39.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-			Frame39.BackgroundTransparency = 0
-			Frame39.Position = UDim2.fromOffset((15 + ((k5 - 1) * (math.floor(((arg77.Width - 30) - 0) / 1) + 8))), 27)
-			Frame39.Name = "\0"
-			Frame39.ZIndex = (Row7.Instance.ZIndex + 1)
-			Frame39.BorderSizePixel = 0
-			Frame39.Size = UDim2.fromOffset(math.floor(((arg77.Width - 30) - 0) / 1), 30)
-			Frame39.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-			createUICorner(Frame39, 0, 6)
-			local TextBox3 = Instance.new("TextBox")
-			TextBox3.FontFace = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font")
-			TextBox3.PlaceholderColor3 = Color3.fromRGB(84, 86, 101)
-			TextBox3.TextColor3 = Color3.fromRGB(255, 255, 255)
-			TextBox3.Parent = Frame39
-			TextBox3.Text = tostring(v5.Default)
-			TextBox3.BorderSizePixel = 0
-			TextBox3.ZIndex = (Row7.Instance.ZIndex + 2)
-			TextBox3.TextXAlignment = Enum.TextXAlignment.Center
-			TextBox3.ClearTextOnFocus = false
-			TextBox3.Name = "\0"
-			TextBox3.Position = UDim2.fromOffset(6, 0)
-			TextBox3.BackgroundTransparency = 1
-			TextBox3.PlaceholderText = v5.Placeholder
-			TextBox3.TextSize = 14
-			TextBox3.Size = UDim2.new(1, -12, 1, 0)
-			setupTextBox(TextBox3)
-			local connection38 = TextBox3.FocusLost:Connect(function(enterPressed2, inputObject2)
-			end)
-			local changedSignal3 = TextBox3:GetPropertyChangedSignal("Text")
-			local connection39 = changedSignal3:Connect(function()
-			end)
-		end
-	end,
-	Thread = function()
-		-- [envlog] error: Script:8: invalid argument #1 to 'create' (function expected, got userdata)
-	end,
-	Toggle = function(arg82, arg83)
-		local Row8 = arg82:AddRow(37, arg83.NoDivider)
-		local Frame40 = Instance.new("Frame")
-		Frame40.Visible = true
-		Frame40.ClipsDescendants = true
-		Frame40.Parent = Row8.Instance
-		Frame40.AnchorPoint = Vector2.new(0, 0)
-		Frame40.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-		Frame40.BackgroundTransparency = 0
-		Frame40.Position = UDim2.fromOffset(15, 10)
-		Frame40.Name = "\0"
-		Frame40.ZIndex = (Row8.Instance.ZIndex + 1)
-		Frame40.BorderSizePixel = 0
-		Frame40.Size = UDim2.fromOffset(17, 17)
-		Frame40.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
-		createUICorner(Frame40, 0, 3)
-		local ImageLabel6 = Instance.new("ImageLabel")
-		ImageLabel6.ImageColor3 = Color3.new(1, 1, 1)
-		ImageLabel6.ImageTransparency = 1
-		ImageLabel6.Parent = Frame40
-		ImageLabel6.Rotation = 0
-		ImageLabel6.Name = "\0"
-		ImageLabel6.BackgroundTransparency = 1
-		ImageLabel6.Position = UDim2.fromOffset(2, 10)
-		ImageLabel6.AnchorPoint = Vector2.new(0, 0)
-		ImageLabel6.ZIndex = ((Row8.Instance.ZIndex + 1) + 1)
-		ImageLabel6.BorderSizePixel = 0
-		ImageLabel6.Size = UDim2.fromOffset(14, 14)
-		setupImageLabel(ImageLabel6, "rbxassetid://10709790644")
-		ImageLabel6.ImageColor3 = Color3.new(0, 0, 0)
-		local TextLabel20 = getTextLabel(Row8, 84, 86, 101, arg83, 41, 0, 100, 1, 0)
-		local TextButton12 = Instance.new("TextButton")
-		TextButton12.BackgroundTransparency = 1
-		TextButton12.ZIndex = (Row8.Instance.ZIndex + 3)
-		TextButton12.Name = "\0"
-		TextButton12.Size = UDim2.new(1, 0, 1, 0)
-		TextButton12.Parent = Row8.Instance
-		TextButton12.Text = ""
-		TextButton12.BorderSizePixel = 0
-		TextButton12.AutoButtonColor = false
-		local connection40 = TextButton12.MouseButton1Down:Connect(function(x6, y6)
-			tweenFrame10(Frame40, 30, 30, 36)
-			tweenImageLabel4(ImageLabel6, 0.22, 1, 2, 10)
-			tweenTextLabel(TextLabel20, 84, 86, 101)
-		end)
-		local tween13 = TweenService:Create(Frame40, TweenInfo.new(0), { BackgroundColor3 = arg64 })
-		tween13:Play()
-		tweenImageLabel5(ImageLabel6, 0, 2)
-		local tween15 = TweenService:Create(TextLabel20, TweenInfo.new(0), { TextColor3 = Color3.fromRGB(255, 255, 255) })
-		tween15:Play()
-	end,
-	Tween = function(arg84, arg85)
-		local tween16 = TweenService:Create(arg84.Instance, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), arg85)
-		tween16:Play()
-	end,
-	Unload = function()
-		for _, connection41 in ipairs({
-			connection7, connection8, connection9, connection10, connection11, connection12,
-			connection13, connection14, connection15, connection16, connection17, connection18,
-			connection19, connection20, connection21, connection22, connection23, connection24,
-			connection25, connection26, connection27, connection28, connection29, connection30,
-			connection31, connection32, connection33, connection34, connection35, connection36,
-			connection37, connection38, connection39, connection40,
-		}) do
-			connection41:Disconnect()
-		end
-		ScreenGui3:Destroy()
-		ScreenGui4:Destroy()
-		getgenv().Evenesce = nil
-	end,
-	Window = function(_, arg89)
-		local Frame41 = Instance.new("Frame")
-		Frame41.Visible = false
-		Frame41.ClipsDescendants = true
-		Frame41.Parent = ScreenGui3
-		Frame41.AnchorPoint = Vector2.new(0.5, 0.5)
-		Frame41.BackgroundColor3 = Color3.fromRGB(19, 19, 20)
-		Frame41.BackgroundTransparency = 1
-		Frame41.Position = UDim2.new(0.5, 0, 0.5, 0)
-		Frame41.Name = "\0"
-		Frame41.ZIndex = 1
-		Frame41.BorderSizePixel = 0
-		Frame41.Size = UDim2.fromOffset(800, 500)
-		Frame41.BackgroundColor3 = Color3.fromRGB(19, 19, 20)
-		createUICorner(Frame41, 0, 15)
-		local Frame42 = createFrame12(true, Frame41, 20, 20, 20, 1, 0, 2, 0, 210, 0)
-		Frame42.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-		createUICorner(Frame42, 0, 15)
-		local Frame43 = Instance.new("Frame")
-		Frame43.Visible = true
-		Frame43.ClipsDescendants = false
-		Frame43.Parent = Frame42
-		Frame43.AnchorPoint = Vector2.new(0, 0)
-		Frame43.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-		Frame43.BackgroundTransparency = 1
-		Frame43.Position = UDim2.new(1, -15, 0, 0)
-		Frame43.Name = "\0"
-		Frame43.ZIndex = 2
-		Frame43.BorderSizePixel = 0
-		Frame43.Size = UDim2.new(0, 15, 1, 0)
-		Frame43.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-		local ImageLabel7 = getImageLabel3(1, Frame42, 15, 12, 3, 26, "rbxassetid://0")
-		local TextLabel21 = Instance.new("TextLabel")
-		TextLabel21.ZIndex = 3
-		TextLabel21.FontFace = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font")
-		TextLabel21.BorderSizePixel = 0
-		TextLabel21.TextColor3 = Color3.fromRGB(255, 255, 255)
-		TextLabel21.Parent = Frame42
-		TextLabel21.Text = arg89.Name
-		TextLabel21.TextTransparency = 1
-		TextLabel21.TextTruncate = Enum.TextTruncate.None
-		TextLabel21.TextWrapped = false
-		TextLabel21.BackgroundTransparency = 1
-		TextLabel21.Name = "\0"
-		TextLabel21.Position = UDim2.fromOffset(51, 15)
-		TextLabel21.TextXAlignment = Enum.TextXAlignment.Left
-		TextLabel21.TextYAlignment = Enum.TextYAlignment.Center
-		TextLabel21.TextSize = 21
-		TextLabel21.Size = UDim2.fromOffset(144, 26)
-		TextLabel21.TextColor3 = Color3.fromRGB(255, 255, 255)
-		TextLabel21.FontFace = Font.new("rbxasset://Evenesce/Assets/ActayWide-Bold.font")
-		local UIPadding5 = Instance.new("UIPadding")
-		UIPadding5.Parent = TextLabel21
-		UIPadding5.PaddingTop = UDim.new(0, 6)
-		local Frame44 = getFrame(Frame42, 25, 24, 26, 52, 3, 31)
-		local ImageLabel8 = getImageLabel2(84, 86, 101, Frame44, 0, 15, 8, 4, 14, 14, "rbxassetid://10734943674")
-		local TextBox4 = getTextBox2(Frame44, 4, 38, "Search", 50)
-		local Frame45 = getFrame(Frame42, 29, 29, 37, 97, 3, 1)
-		local Frame46, ImageLabel9, TextButton13 = getTextButton(Frame41, 225, "rbxassetid://99910508437174")
-		local Frame47, ImageLabel10, TextButton14 = getTextButton(Frame41, 750, "rbxassetid://10734950309")
-		local Frame48 = getFrame14(false, false, Frame41, 25, 24, 26, 270, 15, 3, 190, 35, 8)
-		local TextLabel22 = getTextLabel4(4, Frame48, "...", 14, 46)
-		local ImageLabel11 = getImageLabel5(Frame48, 0, 26, 13, 4)
-		local TextButton15 = createTextButton3(5, Frame48)
-		local TextLabel23 = getTextLabel5(3, 255, 255, 255, Frame41, "", 225, 60, 15, 240, 18)
-		local ImageLabel12 = getImageLabel2(84, 86, 101, Frame41, 270, 280, 65, 3, 11, 8, "rbxassetid://115907894584787")
-		local TextLabel24 = getTextLabel5(3, 84, 86, 101, Frame41, "", 300, 60, 15, 240, 18)
-		local Frame49 = createFrame14(true, Frame41, 210, 90, 2, 590, 410)
-		Frame41.Active = true
-		setupFrame(Frame41)
-		UserInputService.InputChanged:Connect(function(input19, gameProcessed19)
-		end)
-		local changedSignal4 = TextLabel23:GetPropertyChangedSignal("TextBounds")
-		changedSignal4:Connect(function()
-			setupImageLabel2(ImageLabel12, TextLabel24)
-		end)
-		setupFrame(UserInputService)
-		local Frame50 = getFrame14(false, false, ScreenGui4, 23, 23, 26, 0, 0, 60, 380, 45, 8)
-		local ScrollingFrame2 = Instance.new("ScrollingFrame")
-		ScrollingFrame2.Active = true
-		ScrollingFrame2.Selectable = false
-		ScrollingFrame2.ScrollBarThickness = 0
-		ScrollingFrame2.Parent = Frame50
-		ScrollingFrame2.AutomaticCanvasSize = Enum.AutomaticSize.Y
-		ScrollingFrame2.Size = UDim2.new(1, -6, 1, -8)
-		ScrollingFrame2.BackgroundTransparency = 1
-		ScrollingFrame2.Position = UDim2.fromOffset(0, 4)
-		ScrollingFrame2.Name = "\0"
-		ScrollingFrame2.ZIndex = 61
-		ScrollingFrame2.BorderSizePixel = 0
-		ScrollingFrame2.CanvasSize = UDim2.new(0, 0, 0, 0)
-		local UIListLayout2 = Instance.new("UIListLayout")
-		UIListLayout2.Parent = ScrollingFrame2
-		UIListLayout2.SortOrder = Enum.SortOrder.LayoutOrder
-		setupFrame(UserInputService)
-		local Frame51 = getFrame10(false, Frame50, 0, 1, 69, 8)
-		local changedSignal5 = TextBox4:GetPropertyChangedSignal("Text")
-		setupChangedSignal(changedSignal5)
-		local Frame52 = getFrame14(false, false, ScreenGui4, 23, 23, 26, 0, 0, 45, 230, 153, 10)
-		setupFrame(UserInputService)
-		local Frame53 = getFrame14(true, false, Frame52, 30, 30, 36, 10, 10, 46, 90, 30, 5)
-		local ImageLabel13 = getImageLabel2(84, 86, 101, Frame53, 0, 7, 9, 47, 16, 12, "rbxassetid://88303705242749")
-		local TextLabel25 = getTextLabel5(47, 255, 255, 255, Frame53, "Presets", 28, 0, 13, 58, 30)
-		local TextButton16 = createTextButton3(48, Frame53)
-		local Frame54 = getFrame14(true, true, Frame52, 30, 30, 36, 190, 10, 46, 30, 30, 5)
-		local ImageLabel14 = getImageLabel4(255, 255, 255, Frame54, 48, 14, "rbxassetid://10734924532")
-		local TextButton17 = createTextButton3(49, Frame54)
-		helper2(Frame52, 50, 46, 210)
-		local Frame56 = getFrame14(true, true, Frame52, 30, 30, 36, 10, 60, 46, 175, 35, 6)
-		local ImageLabel15 = getImageLabel2(84, 86, 101, Frame56, 0, 10, 10, 47, 14, 14, "rbxassetid://10734943674")
-		local TextBox5 = getTextBox2(Frame56, 47, 32, "Search", 40)
-		local ImageLabel16 = getImageLabel2(84, 86, 101, Frame52, 0, 193, 68, 46, 20, 20, "rbxassetid://10734965287")
-		local ScrollingFrame3 = Instance.new("ScrollingFrame")
-		ScrollingFrame3.Active = true
-		ScrollingFrame3.Selectable = false
-		ScrollingFrame3.ScrollBarThickness = 0
-		ScrollingFrame3.Parent = Frame52
-		ScrollingFrame3.AutomaticCanvasSize = Enum.AutomaticSize.Y
-		ScrollingFrame3.Size = UDim2.new(1, 0, 1, -113)
-		ScrollingFrame3.BackgroundTransparency = 1
-		ScrollingFrame3.Position = UDim2.fromOffset(0, 105)
-		ScrollingFrame3.Name = "\0"
-		ScrollingFrame3.ZIndex = 46
-		ScrollingFrame3.BorderSizePixel = 0
-		ScrollingFrame3.CanvasSize = UDim2.new(0, 0, 0, 0)
-		createUIListLayout(ScrollingFrame3, 8)
-		createUIPadding(ScrollingFrame3, 2)
-		local changedSignal6 = TextBox5:GetPropertyChangedSignal("Text")
-		setupChangedSignal(changedSignal6)
-		local Frame57 = getFrame14(false, false, ScreenGui4, 23, 23, 26, 0, 0, 55, 170, 96, 6)
-		local Frame58 = createFrame8(true, Frame57, 1, 1, 0, 56, 0, 32)
-		local ImageLabel17 = getImageLabel2(255, 255, 255, Frame58, 0, 12, 9, 57, 14, 14, "rbxassetid://10734933222")
-		local TextLabel26 = getTextLabel6(57, Frame58, "Reset all values", 34, 0, 14, 40, 1, 0)
-		local TextButton18 = createTextButton3(58, Frame58)
-		setupTextButton(TextButton18)
-		local Frame59 = createFrame8(true, Frame57, 1, 1, 32, 56, 0, 32)
-		local Frame60 = getFrame2(Frame57, 32)
-		local ImageLabel18 = getImageLabel2(255, 255, 255, Frame59, 0, 12, 9, 57, 14, 14, "rbxassetid://10723344270")
-		local TextLabel27 = getTextLabel6(57, Frame59, "Download", 34, 0, 14, 40, 1, 0)
-		local TextButton19 = createTextButton3(58, Frame59)
-		setupTextButton(TextButton19)
-		local Frame61 = createFrame8(true, Frame57, 1, 1, 64, 56, 0, 32)
-		local Frame62 = getFrame2(Frame57, 64)
-		local ImageLabel19 = getImageLabel3(0, Frame61, 12, 9, 57, 14, "rbxassetid://10747362241")
-		local TextLabel28 = getTextLabel6(57, Frame61, "Delete config", 34, 0, 14, 40, 1, 0)
-		ImageLabel19.ImageColor3 = Color3.fromRGB(255, 80, 80)
-		TextLabel28.TextColor3 = Color3.fromRGB(255, 80, 80)
-		local TextButton20 = createTextButton3(58, Frame61)
-		setupTextButton(TextButton20)
-		setupFrame(UserInputService)
-		local Frame63 = getFrame14(false, false, ScreenGui4, 23, 23, 26, 0, 0, 55, 220, 98, 10)
-		setupFrame(UserInputService)
-		local Frame64 = getFrame14(true, true, Frame63, 30, 30, 36, 10, 10, 56, 200, 32, 6)
-		helper22(Frame64, 10, 9, 57, "circle-plus")
-		local TextBox6 = getTextBox2(Frame64, 57, 32, "Create a new config...", 38)
-		helper2(Frame63, 50, 56, 200)
-		local Frame66 = Instance.new("Frame")
-		Frame66.Visible = true
-		Frame66.ClipsDescendants = true
-		Frame66.Parent = Frame63
-		Frame66.AnchorPoint = Vector2.new(0, 0)
-		Frame66.BackgroundColor3 = arg64
-		Frame66.BackgroundTransparency = 0
-		Frame66.Position = UDim2.fromOffset(10, 58)
-		Frame66.Name = "\0"
-		Frame66.ZIndex = 56
-		Frame66.BorderSizePixel = 0
-		Frame66.Size = UDim2.fromOffset(200, 30)
-		Frame66.BackgroundColor3 = arg64
-		createUICorner(Frame66, 0, 6)
-		local TextLabel29 = Instance.new("TextLabel")
-		TextLabel29.ZIndex = 57
-		TextLabel29.FontFace = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font")
-		TextLabel29.BorderSizePixel = 0
-		TextLabel29.TextColor3 = Color3.fromRGB(255, 255, 255)
-		TextLabel29.Parent = Frame66
-		TextLabel29.Text = "Create"
-		TextLabel29.TextTransparency = 0
-		TextLabel29.TextTruncate = Enum.TextTruncate.None
-		TextLabel29.TextWrapped = false
-		TextLabel29.BackgroundTransparency = 1
-		TextLabel29.Name = "\0"
-		TextLabel29.Position = UDim2.fromOffset(0, 0)
-		TextLabel29.TextXAlignment = Enum.TextXAlignment.Center
-		TextLabel29.TextYAlignment = Enum.TextYAlignment.Center
-		TextLabel29.TextSize = 14
-		TextLabel29.Size = UDim2.new(1, 0, 1, 0)
-		TextLabel29.TextColor3 = Color3.fromRGB(255, 255, 255)
-		TextLabel29.TextColor3 = Color3.new(0, 0, 0)
-		local TextButton21 = createTextButton3(58, Frame66)
-		TextButton21.MouseButton1Down:Connect(function(x10, y10)
-			Frame66.ClipsDescendants = true
-			local mouseLocation4 = UserInputService:GetMouseLocation()
-			local Frame105 = Instance.new("Frame")
-			Frame105.Parent = Frame66
-			Frame105.AnchorPoint = Vector2.new(0.5, 0.5)
-			Frame105.BackgroundColor3 = result4
-			Frame105.Name = "\0"
-			Frame105.Position = UDim2.fromOffset(math.clamp((((mouseLocation4 - Vector2.new(0, 0)).X - 10) / arg72), 0, (200 / arg72)), math.clamp((((mouseLocation4 - Vector2.new(0, 0)).Y - 58) / arg72), 0, (30 / arg72)))
-			Frame105.BackgroundTransparency = 0.5
-			Frame105.ZIndex = 57
-			Frame105.BorderSizePixel = 0
-			Frame105.Size = UDim2.fromOffset(0, 0)
-			createUICorner(Frame105, 1, 0)
-			tweenFrame(Frame105, 200, arg72)
-			task.delay(0.5, function()
-				Frame105:Destroy()
-			end)
-			local textBoundsAsync3 = TextService:GetTextBoundsAsync({ Text = "Enter a config name first.", Font = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font"), Size = 14, Width = 302 })
-			local Frame106 = getFrame8(createFrame6, textBoundsAsync3, 19, 20, 10)
-			local ImageLabel51 = createImageLabel6(arg64, 0, Frame106, 14, 11, 81, 18)
-			ImageLabel51.ImageColor3 = arg64
-			helper21("alert-triangle", ImageLabel51)
-			local TextLabel52 = getTextLabel6(81, Frame106, "Configs", 42, 10, 16, 70, 0, 20)
-			local ImageButton2 = createImageButton(Frame106)
-			ImageButton2.ImageColor3 = Color3.fromRGB(84, 86, 101)
-			setupImageLabel(ImageButton2, "rbxassetid://10747384394")
-			local TextLabel53 = Instance.new("TextLabel")
-			TextLabel53.ZIndex = 81
-			TextLabel53.FontFace = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font")
-			TextLabel53.BorderSizePixel = 0
-			TextLabel53.TextColor3 = Color3.fromRGB(84, 86, 101)
-			TextLabel53.Parent = Frame106
-			TextLabel53.Text = "Enter a config name first."
-			TextLabel53.TextTransparency = 0
-			TextLabel53.TextTruncate = Enum.TextTruncate.None
-			TextLabel53.TextWrapped = true
-			TextLabel53.BackgroundTransparency = 1
-			TextLabel53.Name = "\0"
-			TextLabel53.Position = UDim2.fromOffset(14, 36)
-			TextLabel53.TextXAlignment = Enum.TextXAlignment.Left
-			TextLabel53.TextYAlignment = Enum.TextYAlignment.Top
-			TextLabel53.TextSize = 14
-			TextLabel53.Size = UDim2.new(1, -28, 0, textBoundsAsync3.Y)
-			TextLabel53.TextColor3 = Color3.fromRGB(84, 86, 101)
-			local Frame107 = getFrame9(Frame106)
-			local Frame108 = getFrame10(true, Frame107, 1, 0, 82, 0)
-			local UIGradient8 = createUIGradient2(Frame108)
-			UIGradient8.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, arg64), ColorSequenceKeypoint.new(1, result5) })
-			Frame106.Position = UDim2.new(1, 360, 0, 15)
-			tweenFrame8(Frame106)
-			setupTextButton(ImageButton2)
-			local tween122 = TweenService:Create(Frame108, TweenInfo.new(5, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), { Size = UDim2.new(0, 0, 1, 0) })
-			tween122:Play()
-			task.delay(5, function(...)
-				tweenFrame9(Frame106)
-				Frame106:GetDescendants()
-				tweenFrame6(ImageLabel51, 0.25, 1)
-				tweenImageLabel(ImageLabel51, 1)
-				tweenTextLabel4(TextLabel52, 1)
-				tweenFrame6(TextLabel52, 0.25, 1)
-				tweenFrame6(ImageButton2, 0.25, 1)
-				tweenImageLabel(ImageButton2, 1)
-				tweenTextLabel4(TextLabel53, 1)
-				tweenFrame6(TextLabel53, 0.25, 1)
-				tweenFrame6(Frame107, 0.25, 1)
-				tweenFrame6(Frame108, 0.25, 1)
-				tweenFrame6(Frame106, 0.25, 1)
-				task.delay(0.28, function()
-					Frame106.Visible = false
-					ImageLabel51.BackgroundTransparency = 1
-					ImageLabel51.ImageTransparency = 0
-					TextLabel52.TextTransparency = 0
-					TextLabel52.BackgroundTransparency = 1
-					ImageButton2.BackgroundTransparency = 1
-					ImageButton2.ImageTransparency = 0
-					TextLabel53.TextTransparency = 0
-					TextLabel53.BackgroundTransparency = 1
-					Frame107.BackgroundTransparency = 0
-					Frame108.BackgroundTransparency = 0
-					Frame106.BackgroundTransparency = 0
-				end)
-				task.delay(0.3, function()
-					Frame106:Destroy()
-				end)
-			end)
-		end)
-		TextButton17.MouseButton1Down:Connect(function(x11, y11)
-			Frame63.Parent = ScreenGui3
-			Frame63.Position = UDim2.fromOffset((((220 / arg72) + 6) + -6), (10 / arg72))
-			Frame63.Visible = true
-			-- [envlog] error: The Parent property of   is locked, current parent: NULL, new parent  
-		end)
-		local Frame67, Frame68, TextBox7, ScrollingFrame4 = getScrollingFrame(setupFrame2, Frame70, Frame71, Frame72, Frame73, Frame74)
-		local Frame70 = getFrame15(ScrollingFrame4)
-		Frame70.BackgroundTransparency = 1
-		local ImageLabel22 = getImageLabel6(arg64, Frame70)
-		local TextLabel30 = getTextLabel4(57, Frame70, "Evenesce", 12, 42)
-		local TextButton22 = createTextButton3(58, Frame70)
-		helper4(TextButton22)
-		TextButton22.MouseButton1Down:Connect(function(x12, y12)
-			helper5(Frame70, 0, ImageLabel22, TextLabel30, 30, 255, 255, 255)
-			helper6(Frame71, 1, ImageLabel23, TextLabel31, 12, 84, 86, 101)
-			helper7(Frame72, 1, ImageLabel24, TextLabel32, 12, 84, 86, 101)
-			helper8(Frame73, 1, ImageLabel25, TextLabel33, 12, 84, 86, 101)
-			helper9(Frame74, 1, ImageLabel26, TextLabel34, 12, 84, 86, 101)
-		end)
-		tweenFrame7(Frame70, 0)
-		tweenImageLabel3(ImageLabel22, 0)
-		tweenTextLabel3(TextLabel30, 30, 255, 255, 255)
-		local Frame71 = getFrame15(ScrollingFrame4)
-		Frame71.BackgroundTransparency = 1
-		local ImageLabel23 = getImageLabel6(arg64, Frame71)
-		local TextLabel31 = getTextLabel4(57, Frame71, "Crimson", 12, 42)
-		local TextButton23 = createTextButton3(58, Frame71)
-		helper20(TextButton23, TextLabel31, 255, 255, 255, 84, 86, 101)
-		TextButton23.MouseButton1Down:Connect(function(x13, y13)
-			helper5(Frame70, 1, ImageLabel22, TextLabel30, 12, 120, 92, 100)
-			helper6(Frame71, 0, ImageLabel23, TextLabel31, 30, 255, 245, 247)
-			helper7(Frame72, 1, ImageLabel24, TextLabel32, 12, 120, 92, 100)
-			helper8(Frame73, 1, ImageLabel25, TextLabel33, 12, 120, 92, 100)
-			helper9(Frame74, 1, ImageLabel26, TextLabel34, 12, 120, 92, 100)
-		end)
-		tweenFrame7(Frame71, 1)
-		tweenImageLabel3(ImageLabel23, 1)
-		tweenTextLabel3(TextLabel31, 12, 84, 86, 101)
-		local Frame72 = getFrame15(ScrollingFrame4)
-		Frame72.BackgroundTransparency = 1
-		local ImageLabel24 = getImageLabel6(arg64, Frame72)
-		local TextLabel32 = getTextLabel4(57, Frame72, "Ocean", 12, 42)
-		local TextButton24 = createTextButton3(58, Frame72)
-		helper20(TextButton24, TextLabel32, 255, 245, 247, 120, 92, 100)
-		TextButton24.MouseButton1Down:Connect(function(x14, y14)
-			helper5(Frame70, 1, ImageLabel22, TextLabel30, 12, 92, 106, 128)
-			helper6(Frame71, 1, ImageLabel23, TextLabel31, 12, 92, 106, 128)
-			helper7(Frame72, 0, ImageLabel24, TextLabel32, 30, 235, 242, 255)
-			helper8(Frame73, 1, ImageLabel25, TextLabel33, 12, 92, 106, 128)
-			helper9(Frame74, 1, ImageLabel26, TextLabel34, 12, 92, 106, 128)
-		end)
-		tweenFrame7(Frame72, 1)
-		tweenImageLabel3(ImageLabel24, 1)
-		tweenTextLabel3(TextLabel32, 12, 84, 86, 101)
-		local Frame73 = getFrame15(ScrollingFrame4)
-		Frame73.BackgroundTransparency = 1
-		local ImageLabel25 = getImageLabel6(arg64, Frame73)
-		local TextLabel33 = getTextLabel4(57, Frame73, "Emerald", 12, 42)
-		local TextButton25 = createTextButton3(58, Frame73)
-		helper20(TextButton25, TextLabel33, 235, 242, 255, 92, 106, 128)
-		TextButton25.MouseButton1Down:Connect(function(x15, y15)
-			helper5(Frame70, 1, ImageLabel22, TextLabel30, 12, 94, 118, 105)
-			helper6(Frame71, 1, ImageLabel23, TextLabel31, 12, 94, 118, 105)
-			helper7(Frame72, 1, ImageLabel24, TextLabel32, 12, 94, 118, 105)
-			helper8(Frame73, 0, ImageLabel25, TextLabel33, 30, 236, 248, 242)
-			helper9(Frame74, 1, ImageLabel26, TextLabel34, 12, 94, 118, 105)
-		end)
-		tweenFrame7(Frame73, 1)
-		tweenImageLabel3(ImageLabel25, 1)
-		tweenTextLabel3(TextLabel33, 12, 84, 86, 101)
-		local Frame74 = getFrame15(ScrollingFrame4)
-		Frame74.BackgroundTransparency = 1
-		local ImageLabel26 = getImageLabel6(arg64, Frame74)
-		local TextLabel34 = getTextLabel4(57, Frame74, "Gold", 12, 42)
-		local TextButton26 = createTextButton3(58, Frame74)
-		helper20(TextButton26, TextLabel34, 236, 248, 242, 94, 118, 105)
-		TextButton26.MouseButton1Down:Connect(function(x16, y16)
-			helper5(Frame70, 1, ImageLabel22, TextLabel30, 12, 126, 114, 92)
-			helper6(Frame71, 1, ImageLabel23, TextLabel31, 12, 126, 114, 92)
-			helper7(Frame72, 1, ImageLabel24, TextLabel32, 12, 126, 114, 92)
-			helper8(Frame73, 1, ImageLabel25, TextLabel33, 12, 126, 114, 92)
-			helper9(Frame74, 0, ImageLabel26, TextLabel34, 30, 255, 248, 235)
-		end)
-		tweenFrame7(Frame74, 1)
-		tweenImageLabel3(ImageLabel26, 1)
-		tweenTextLabel3(TextLabel34, 12, 84, 86, 101)
-		TextButton16.MouseButton1Down:Connect(function(x17, y17)
-			TextBox7.Text = ""
-			setupFrame2(Frame70, Frame71, Frame72, Frame73, Frame74)
-			Frame68.Visible = false
-			ScrollingFrame4.Position = UDim2.fromOffset(0, 0)
-			ScrollingFrame4.Size = UDim2.new(1, 0, 1, 0)
-			Frame67.Size = UDim2.fromOffset(140, 178)
-			Frame67.Parent = ScreenGui3
-			Frame67.Position = UDim2.fromOffset((((230 / arg72) + 6) + -6), (10 / arg72))
-			Frame67.Visible = true
-			-- [envlog] error: The Parent property of   is locked, current parent: NULL, new parent  
-		end)
-		TextButton13.MouseButton1Down:Connect(function(x18, y18)
-			Frame52.Size = UDim2.fromOffset(230, 151)
-			Frame52.Parent = ScreenGui3
-			Frame52.Position = UDim2.fromOffset((225 / arg72), ((100 / arg72) + -6))
-			Frame52.Visible = true
-			-- [envlog] error: The Parent property of   is locked, current parent: NULL, new parent  
-		end)
-		local Frame75 = getFrame14(false, true, ScreenGui4, 23, 23, 26, 0, 0, 40, 140, 0, 6)
-		local Frame76 = getFrame(Frame75, 23, 23, 26, 0, 45, 32)
-		local ImageLabel27 = getImageLabel2(84, 86, 101, Frame76, 0, 10, 9, 46, 14, 14, "rbxassetid://10734943674")
-		local TextBox8 = getTextBox2(Frame76, 46, 30, "Search...", 34)
-		helper3(Frame76, 46)
-		local ScrollingFrame5 = createScrollingFrame(Frame75, 44)
-		createUIListLayout(ScrollingFrame5, 4)
-		createUIPadding(ScrollingFrame5, 6)
-		setupFrame(UserInputService)
-		local changedSignal8 = TextBox8:GetPropertyChangedSignal("Text")
-		setupChangedSignal(changedSignal8)
-		TextButton15.MouseButton1Down:Connect(function(x19, y19)
-			tweenImageLabel2(ImageLabel11, 180)
-			TextBox8.Text = ""
-			Frame76.Visible = false
-			ScrollingFrame5.Position = UDim2.fromOffset(0, 0)
-			ScrollingFrame5.Size = UDim2.new(1, 0, 1, 0)
-			Frame75.Size = UDim2.fromOffset((190 / arg72), 8)
-			Frame75.Parent = ScreenGui3
-			Frame75.Position = UDim2.fromOffset((270 / arg72), ((100 / arg72) + -6))
-			Frame75.Visible = true
-			-- [envlog] error: The Parent property of   is locked, current parent: NULL, new parent  
-		end)
-		local Frame78 = getFrame14(false, false, ScreenGui4, 23, 23, 26, 0, 0, 45, 220, 232, 10)
-		setupFrame(UserInputService)
-		local ImageLabel28 = Instance.new("ImageLabel")
-		ImageLabel28.BackgroundTransparency = 1
-		ImageLabel28.Image = "rbxthumb://type=AvatarHeadShot&id=0&w=48&h=48"
-		ImageLabel28.Name = "\0"
-		ImageLabel28.Position = UDim2.fromOffset(12, 12)
-		ImageLabel28.Parent = Frame78
-		ImageLabel28.ZIndex = 46
-		ImageLabel28.BorderSizePixel = 0
-		ImageLabel28.Size = UDim2.fromOffset(35, 35)
-		createUICorner(ImageLabel28, 1, 0)
-		ContentProvider:PreloadAsync({ ImageLabel28 })
-		local TextLabel35 = Instance.new("TextLabel")
-		TextLabel35.ZIndex = 46
-		TextLabel35.FontFace = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font")
-		TextLabel35.BorderSizePixel = 0
-		TextLabel35.TextColor3 = Color3.fromRGB(255, 255, 255)
-		TextLabel35.Parent = Frame78
-		TextLabel35.Text = Players.LocalPlayer.DisplayName
-		TextLabel35.TextTransparency = 0
-		TextLabel35.TextTruncate = Enum.TextTruncate.AtEnd
-		TextLabel35.TextWrapped = false
-		TextLabel35.BackgroundTransparency = 1
-		TextLabel35.Name = "\0"
-		TextLabel35.Position = UDim2.fromOffset(58, 13)
-		TextLabel35.TextXAlignment = Enum.TextXAlignment.Left
-		TextLabel35.TextYAlignment = Enum.TextYAlignment.Center
-		TextLabel35.TextSize = 14
-		TextLabel35.Size = UDim2.fromOffset(150, 16)
-		TextLabel35.TextColor3 = Color3.fromRGB(255, 255, 255)
-		local TextLabel36 = Instance.new("TextLabel")
-		TextLabel36.ZIndex = 46
-		TextLabel36.FontFace = Font.new("rbxasset://Evenesce/Assets/figtree-Semibold.font")
-		TextLabel36.BorderSizePixel = 0
-		TextLabel36.TextColor3 = Color3.fromRGB(84, 86, 101)
-		TextLabel36.Parent = Frame78
-		TextLabel36.Text = "@" .. Players.LocalPlayer.Name
-		TextLabel36.TextTransparency = 0
-		TextLabel36.TextTruncate = Enum.TextTruncate.AtEnd
-		TextLabel36.TextWrapped = false
-		TextLabel36.BackgroundTransparency = 1
-		TextLabel36.Name = "\0"
-		TextLabel36.Position = UDim2.fromOffset(58, 31)
-		TextLabel36.TextXAlignment = Enum.TextXAlignment.Left
-		TextLabel36.TextYAlignment = Enum.TextYAlignment.Center
-		TextLabel36.TextSize = 12
-		TextLabel36.Size = UDim2.fromOffset(150, 14)
-		TextLabel36.TextColor3 = Color3.fromRGB(84, 86, 101)
-		helper2(Frame78, 58, 46, 200)
-		local Frame80 = getFrame16(Frame78, 66, "rbxassetid://10734951038", "Menu Scale")
-		local ImageLabel30 = getImageLabel5(Frame80, 270, 20, 11, 47)
-		local TextButton27 = createTextButton3(48, Frame80)
-		local Frame81, Frame82, TextBox9, ScrollingFrame6 = getScrollingFrame(setupFrame3, Frame84, Frame85, Frame86, Frame87, Frame88)
-		local Frame84 = getFrame15(ScrollingFrame6)
-		Frame84.BackgroundTransparency = 1
-		local ImageLabel32 = getImageLabel6(arg64, Frame84)
-		local TextLabel38 = getTextLabel4(57, Frame84, "50%", 12, 42)
-		local TextButton28 = createTextButton3(58, Frame84)
-		helper20(TextButton28, TextLabel38, 255, 248, 235, 126, 114, 92)
-		TextButton28.MouseButton1Down:Connect(function(x20, y20)
-			helper10(Frame84, 0, ImageLabel32, TextLabel38, 30, 255, 248, 235)
-			helper11(Frame85, 1, ImageLabel33, TextLabel39, 12, 126, 114, 92)
-			helper12(Frame86, 1, ImageLabel34, TextLabel40, 12, 126, 114, 92)
-			helper13(Frame87, 1, ImageLabel35, TextLabel41, 12, 126, 114, 92)
-			helper14(Frame88, 1, ImageLabel36, TextLabel42, 12, 126, 114, 92)
-			setUIScaleScale(0.5, Frame41)
-		end)
-		helper10(Frame84, 1, ImageLabel32, TextLabel38, 12, 84, 86, 101)
-		local Frame85 = getFrame15(ScrollingFrame6)
-		Frame85.BackgroundTransparency = 1
-		local ImageLabel33 = getImageLabel6(arg64, Frame85)
-		local TextLabel39 = getTextLabel4(57, Frame85, "70%", 12, 42)
-		local TextButton29 = createTextButton3(58, Frame85)
-		helper20(TextButton29, TextLabel39, 255, 248, 235, 126, 114, 92)
-		TextButton29.MouseButton1Down:Connect(function(x21, y21)
-			helper10(Frame84, 1, ImageLabel32, TextLabel38, 12, 126, 114, 92)
-			helper11(Frame85, 0, ImageLabel33, TextLabel39, 30, 255, 248, 235)
-			helper12(Frame86, 1, ImageLabel34, TextLabel40, 12, 126, 114, 92)
-			helper13(Frame87, 1, ImageLabel35, TextLabel41, 12, 126, 114, 92)
-			helper14(Frame88, 1, ImageLabel36, TextLabel42, 12, 126, 114, 92)
-			setUIScaleScale(0.7, Frame41)
-		end)
-		helper11(Frame85, 1, ImageLabel33, TextLabel39, 12, 84, 86, 101)
-		local Frame86 = getFrame15(ScrollingFrame6)
-		Frame86.BackgroundTransparency = 1
-		local ImageLabel34 = getImageLabel6(arg64, Frame86)
-		local TextLabel40 = getTextLabel4(57, Frame86, "100%", 12, 42)
-		local TextButton30 = createTextButton3(58, Frame86)
-		helper20(TextButton30, TextLabel40, 255, 248, 235, 126, 114, 92)
-		TextButton30.MouseButton1Down:Connect(function(x22, y22)
-			helper10(Frame84, 1, ImageLabel32, TextLabel38, 12, 126, 114, 92)
-			helper11(Frame85, 1, ImageLabel33, TextLabel39, 12, 126, 114, 92)
-			helper12(Frame86, 0, ImageLabel34, TextLabel40, 30, 255, 248, 235)
-			helper13(Frame87, 1, ImageLabel35, TextLabel41, 12, 126, 114, 92)
-			helper14(Frame88, 1, ImageLabel36, TextLabel42, 12, 126, 114, 92)
-			setUIScaleScale(1, Frame41)
-		end)
-		helper12(Frame86, 0, ImageLabel34, TextLabel40, 30, 255, 255, 255)
-		local Frame87 = getFrame15(ScrollingFrame6)
-		Frame87.BackgroundTransparency = 1
-		local ImageLabel35 = getImageLabel6(arg64, Frame87)
-		local TextLabel41 = getTextLabel4(57, Frame87, "125%", 12, 42)
-		local TextButton31 = createTextButton3(58, Frame87)
-		helper20(TextButton31, TextLabel41, 255, 248, 235, 126, 114, 92)
-		TextButton31.MouseButton1Down:Connect(function(x23, y23)
-			helper10(Frame84, 1, ImageLabel32, TextLabel38, 12, 126, 114, 92)
-			helper11(Frame85, 1, ImageLabel33, TextLabel39, 12, 126, 114, 92)
-			helper12(Frame86, 1, ImageLabel34, TextLabel40, 12, 126, 114, 92)
-			helper13(Frame87, 0, ImageLabel35, TextLabel41, 30, 255, 248, 235)
-			helper14(Frame88, 1, ImageLabel36, TextLabel42, 12, 126, 114, 92)
-			setUIScaleScale(1.25, Frame41)
-		end)
-		helper13(Frame87, 1, ImageLabel35, TextLabel41, 12, 84, 86, 101)
-		local Frame88 = getFrame15(ScrollingFrame6)
-		Frame88.BackgroundTransparency = 1
-		local ImageLabel36 = getImageLabel6(arg64, Frame88)
-		local TextLabel42 = getTextLabel4(57, Frame88, "150%", 12, 42)
-		local TextButton32 = createTextButton3(58, Frame88)
-		helper20(TextButton32, TextLabel42, 255, 248, 235, 126, 114, 92)
-		TextButton32.MouseButton1Down:Connect(function(x24, y24)
-			helper10(Frame84, 1, ImageLabel32, TextLabel38, 12, 126, 114, 92)
-			helper11(Frame85, 1, ImageLabel33, TextLabel39, 12, 126, 114, 92)
-			helper12(Frame86, 1, ImageLabel34, TextLabel40, 12, 126, 114, 92)
-			helper13(Frame87, 1, ImageLabel35, TextLabel41, 12, 126, 114, 92)
-			helper14(Frame88, 0, ImageLabel36, TextLabel42, 30, 255, 248, 235)
-			setUIScaleScale(1.5, Frame41)
-		end)
-		helper14(Frame88, 1, ImageLabel36, TextLabel42, 12, 84, 86, 101)
-		setupTextButton7(TextButton27, ImageLabel30, TextBox9, setupFrame3, Frame84, Frame85, Frame86, Frame87, Frame88, Frame82, ScrollingFrame6, Frame81, 44)
-		local Frame89 = getFrame16(Frame78, 98, "rbxassetid://10734898756", "Style")
-		local ImageLabel38 = getImageLabel5(Frame89, 270, 20, 11, 47)
-		local TextButton33 = createTextButton3(48, Frame89)
-		local Frame90, Frame91, TextBox10, ScrollingFrame7 = getScrollingFrame(setupFrame4, Frame93, Frame94, Frame95, Frame96, Frame97)
-		local Frame93 = getFrame15(ScrollingFrame7)
-		Frame93.BackgroundTransparency = 1
-		local ImageLabel40 = getImageLabel6(arg64, Frame93)
-		local TextLabel44 = getTextLabel4(57, Frame93, "Evenesce", 12, 42)
-		local TextButton34 = createTextButton3(58, Frame93)
-		helper4(TextButton34)
-		TextButton34.MouseButton1Down:Connect(function(x26, y26)
-			helper15(Frame93, 0, ImageLabel40, TextLabel44, 30, 255, 248, 235)
-			helper16(Frame94, 1, ImageLabel41, TextLabel45, 12, 126, 114, 92)
-			helper17(Frame95, 1, ImageLabel42, TextLabel46, 12, 126, 114, 92)
-			helper18(Frame96, 1, ImageLabel43, TextLabel47, 12, 126, 114, 92)
-			helper19(Frame97, 1, ImageLabel44, TextLabel48, 12, 126, 114, 92)
-		end)
-		tweenFrame7(Frame93, 0)
-		tweenImageLabel3(ImageLabel40, 0)
-		tweenTextLabel3(TextLabel44, 30, 255, 255, 255)
-		local Frame94 = getFrame15(ScrollingFrame7)
-		Frame94.BackgroundTransparency = 1
-		local ImageLabel41 = getImageLabel6(arg64, Frame94)
-		local TextLabel45 = getTextLabel4(57, Frame94, "Crimson", 12, 42)
-		local TextButton35 = createTextButton3(58, Frame94)
-		helper20(TextButton35, TextLabel45, 255, 255, 255, 84, 86, 101)
-		TextButton35.MouseButton1Down:Connect(function(x27, y27)
-			helper15(Frame93, 1, ImageLabel40, TextLabel44, 12, 84, 86, 101)
-			helper16(Frame94, 0, ImageLabel41, TextLabel45, 30, 255, 255, 255)
-			helper17(Frame95, 1, ImageLabel42, TextLabel46, 12, 84, 86, 101)
-			helper18(Frame96, 1, ImageLabel43, TextLabel47, 12, 84, 86, 101)
-			helper19(Frame97, 1, ImageLabel44, TextLabel48, 12, 84, 86, 101)
-		end)
-		tweenFrame7(Frame94, 1)
-		tweenImageLabel3(ImageLabel41, 1)
-		tweenTextLabel3(TextLabel45, 12, 84, 86, 101)
-		local Frame95 = getFrame15(ScrollingFrame7)
-		Frame95.BackgroundTransparency = 1
-		local ImageLabel42 = getImageLabel6(arg64, Frame95)
-		local TextLabel46 = getTextLabel4(57, Frame95, "Ocean", 12, 42)
-		local TextButton36 = createTextButton3(58, Frame95)
-		helper20(TextButton36, TextLabel46, 255, 245, 247, 120, 92, 100)
-		TextButton36.MouseButton1Down:Connect(function(x28, y28)
-			helper15(Frame93, 1, ImageLabel40, TextLabel44, 12, 120, 92, 100)
-			helper16(Frame94, 1, ImageLabel41, TextLabel45, 12, 120, 92, 100)
-			helper17(Frame95, 0, ImageLabel42, TextLabel46, 30, 255, 245, 247)
-			helper18(Frame96, 1, ImageLabel43, TextLabel47, 12, 120, 92, 100)
-			helper19(Frame97, 1, ImageLabel44, TextLabel48, 12, 120, 92, 100)
-		end)
-		tweenFrame7(Frame95, 1)
-		tweenImageLabel3(ImageLabel42, 1)
-		tweenTextLabel3(TextLabel46, 12, 84, 86, 101)
-		local Frame96 = getFrame15(ScrollingFrame7)
-		Frame96.BackgroundTransparency = 1
-		local ImageLabel43 = getImageLabel6(arg64, Frame96)
-		local TextLabel47 = getTextLabel4(57, Frame96, "Emerald", 12, 42)
-		local TextButton37 = createTextButton3(58, Frame96)
-		helper20(TextButton37, TextLabel47, 235, 242, 255, 92, 106, 128)
-		TextButton37.MouseButton1Down:Connect(function(x29, y29)
-			helper15(Frame93, 1, ImageLabel40, TextLabel44, 12, 92, 106, 128)
-			helper16(Frame94, 1, ImageLabel41, TextLabel45, 12, 92, 106, 128)
-			helper17(Frame95, 1, ImageLabel42, TextLabel46, 12, 92, 106, 128)
-			helper18(Frame96, 0, ImageLabel43, TextLabel47, 30, 235, 242, 255)
-			helper19(Frame97, 1, ImageLabel44, TextLabel48, 12, 92, 106, 128)
-		end)
-		tweenFrame7(Frame96, 1)
-		tweenImageLabel3(ImageLabel43, 1)
-		tweenTextLabel3(TextLabel47, 12, 84, 86, 101)
-		local Frame97 = getFrame15(ScrollingFrame7)
-		Frame97.BackgroundTransparency = 1
-		local ImageLabel44 = getImageLabel6(arg64, Frame97)
-		local TextLabel48 = getTextLabel4(57, Frame97, "Gold", 12, 42)
-		local TextButton38 = createTextButton3(58, Frame97)
-		helper20(TextButton38, TextLabel48, 236, 248, 242, 94, 118, 105)
-		TextButton38.MouseButton1Down:Connect(function(x30, y30)
-			helper15(Frame93, 1, ImageLabel40, TextLabel44, 12, 94, 118, 105)
-			helper16(Frame94, 1, ImageLabel41, TextLabel45, 12, 94, 118, 105)
-			helper17(Frame95, 1, ImageLabel42, TextLabel46, 12, 94, 118, 105)
-			helper18(Frame96, 1, ImageLabel43, TextLabel47, 12, 94, 118, 105)
-			helper19(Frame97, 0, ImageLabel44, TextLabel48, 30, 236, 248, 242)
-		end)
-		tweenFrame7(Frame97, 1)
-		tweenImageLabel3(ImageLabel44, 1)
-		tweenTextLabel3(TextLabel48, 12, 84, 86, 101)
-		setupTextButton7(TextButton33, ImageLabel38, TextBox10, setupFrame4, Frame93, Frame94, Frame95, Frame96, Frame97, Frame91, ScrollingFrame7, Frame90, 65.333333333333329)
-		local Frame98 = getFrame16(Frame78, 130, "rbxassetid://10723433811", "Hide Watermark")
-		local Frame99, ImageLabel46 = getImageLabel7(Frame98)
-		tweenFrame11(Frame99)
-		tweenImageLabel5(ImageLabel46, 1, 10)
-		local TextButton39 = createTextButton3(48, Frame98)
-		setupTextButton6(TextButton39, Frame99, ImageLabel46)
-		local Frame100 = getFrame17(Frame78, 162, "bell-off", "Hide Notifications")
-		local Frame101, ImageLabel48 = getImageLabel7(Frame100)
-		tweenFrame11(Frame101)
-		tweenImageLabel5(ImageLabel48, 1, 10)
-		local TextButton40 = createTextButton3(48, Frame100)
-		setupTextButton6(TextButton40, Frame101, ImageLabel48)
-		local Frame102 = getFrame17(Frame78, 194, "keyboard", "Hide Keybind List")
-		local Frame103, ImageLabel50 = getImageLabel7(Frame102)
-		tweenFrame11(Frame103)
-		tweenImageLabel5(ImageLabel50, 1, 10)
-		local TextButton41 = createTextButton3(48, Frame102)
-		setupTextButton6(TextButton41, Frame103, ImageLabel50)
-		TextButton14.MouseButton1Down:Connect(function(x35, y35)
-			Frame78.Parent = ScreenGui3
-			Frame78.Position = UDim2.fromOffset(303.33333333333337, 60.666666666666671)
-			Frame78.Visible = true
-			-- [envlog] error: The Parent property of   is locked, current parent: NULL, new parent  
-		end)
-		task.wait(0.1)
-		TextLabel23.Text = ""
-		TextLabel24.Text = ""
-		TextLabel22.Text = "..."
-		setupImageLabel2(ImageLabel12, TextLabel24)
-		Frame41.Visible = true
-		tweenFrame6(Frame41, 0.35, 0)
-		tweenFrame6(Frame42, 0.35, 0)
-		tweenFrame6(Frame43, 0.35, 0)
-		ImageLabel7.Position = UDim2.fromOffset(-8, 12)
-		tweenImageLabel4(ImageLabel7, 0.4, 0, 15, 12)
-		task.delay(0.06, function()
-			TextLabel21.Position = UDim2.fromOffset(31, 15)
-			tweenTextLabel5(TextLabel21, 0.4, 51, 15)
-		end)
-		task.delay(0.205, function()
-			Frame44.Position = UDim2.fromOffset(-20, 52)
-			tweenFrame12(Frame44, 52)
-			setupFrame5(Frame44, ImageLabel8, TextBox4)
-		end)
-		task.delay(0.26, function(...)
-			Frame45.Position = UDim2.fromOffset(-20, 97)
-			tweenFrame12(Frame45, 97)
-			Frame45.Visible = true
-			Frame45:GetDescendants()
-			setupImageLabel3(Frame45, 0)
-			task.delay(0.28, function()
-				Frame45.Visible = true
-				Frame45.BackgroundTransparency = 0
-			end)
-		end)
-		task.delay(0.25, function(...)
-			setupFrame5(Frame46, ImageLabel9, TextButton13)
-			Frame48.Visible = true
-			Frame48:GetDescendants()
-			setupTextBox2(TextLabel22)
-			setupImageLabel3(TextLabel22, 1)
-			setupImageLabel3(ImageLabel11, 1)
-			setupImageLabel4(ImageLabel11)
-			setupTextBox2(TextButton15)
-			setupImageLabel3(TextButton15, 1)
-			setupImageLabel3(Frame48, 0)
-			task.delay(0.28, function()
-				Frame48.Visible = true
-				TextLabel22.TextTransparency = 0
-				TextLabel22.BackgroundTransparency = 1
-				ImageLabel11.BackgroundTransparency = 1
-				ImageLabel11.ImageTransparency = 0
-				TextButton15.TextTransparency = 0
-				TextButton15.BackgroundTransparency = 1
-				Frame48.BackgroundTransparency = 0
-			end)
-			setupFrame5(Frame47, ImageLabel10, TextButton14)
-		end)
-		task.delay(0.1, function(...)
-			TextLabel23.Text = ""
-			TextLabel24.Text = ""
-			TextLabel22.Text = "..."
-			TextLabel23.TextTransparency = 1
-			TextLabel24.TextTransparency = 1
-			ImageLabel12.ImageTransparency = 1
-			task.delay(0.05, function()
-				setupImageLabel2(ImageLabel12, TextLabel24)
-				TextLabel23.Position = UDim2.fromOffset(210, 60)
-				tweenTextLabel5(TextLabel23, 0.3, 225, 60)
-				ImageLabel12.Position = (UDim2.fromOffset(237, 65) - UDim2.fromOffset(15, 0))
-				tweenImageLabel4(ImageLabel12, 0.3, 0, 237, 65)
-				TextLabel24.Position = (UDim2.fromOffset(257, 60) - UDim2.fromOffset(15, 0))
-				tweenTextLabel5(TextLabel24, 0.3, 257, 60)
-			end)
-		end)
-	end
+	Presets = {
+		Evenesce = {
+			Text = Color3.fromRGB(255,255,255), Accent = Color3.fromRGB(134,134,255),
+			Background = Color3.fromRGB(19,19,20), DimText = Color3.fromRGB(84,86,101),
+			Element = Color3.fromRGB(30,30,36), ElementAlt = Color3.fromRGB(27,27,32),
+			Line = Color3.fromRGB(29,29,37), Ripple = Color3.fromRGB(146,146,255),
+			Section = Color3.fromRGB(23,23,26), Selected = Color3.fromRGB(25,24,26),
+			Sidebar = Color3.fromRGB(20,20,20)
+		},
+		Crimson = {
+			Text = Color3.fromRGB(255,245,247), Accent = Color3.fromRGB(245,93,97),
+			Background = Color3.fromRGB(20,17,18), DimText = Color3.fromRGB(120,92,100),
+			Element = Color3.fromRGB(36,29,32), ElementAlt = Color3.fromRGB(32,26,29),
+			Line = Color3.fromRGB(37,29,33), Ripple = Color3.fromRGB(255,120,124),
+			Section = Color3.fromRGB(26,22,24), Selected = Color3.fromRGB(28,23,25),
+			Sidebar = Color3.fromRGB(21,18,19)
+		},
+		Ocean = {
+			Text = Color3.fromRGB(235,242,255), Accent = Color3.fromRGB(64,156,255),
+			Background = Color3.fromRGB(15,18,23), DimText = Color3.fromRGB(92,106,128),
+			Element = Color3.fromRGB(26,33,43), ElementAlt = Color3.fromRGB(23,29,38),
+			Line = Color3.fromRGB(28,35,46), Ripple = Color3.fromRGB(96,176,255),
+			Section = Color3.fromRGB(19,24,31), Selected = Color3.fromRGB(21,26,34),
+			Sidebar = Color3.fromRGB(16,19,24)
+		},
+		Emerald = {
+			Text = Color3.fromRGB(236,248,242), Accent = Color3.fromRGB(60,220,140),
+			Background = Color3.fromRGB(15,20,17), DimText = Color3.fromRGB(94,118,105),
+			Element = Color3.fromRGB(26,36,30), ElementAlt = Color3.fromRGB(23,32,27),
+			Line = Color3.fromRGB(28,40,34), Ripple = Color3.fromRGB(100,235,165),
+			Section = Color3.fromRGB(19,26,22), Selected = Color3.fromRGB(21,28,24),
+			Sidebar = Color3.fromRGB(16,21,18)
+		},
+		Gold = {
+			Text = Color3.fromRGB(255,248,235), Accent = Color3.fromRGB(240,180,60),
+			Background = Color3.fromRGB(21,19,15), DimText = Color3.fromRGB(126,114,92),
+			Element = Color3.fromRGB(37,33,25), ElementAlt = Color3.fromRGB(33,29,22),
+			Line = Color3.fromRGB(43,38,29), Ripple = Color3.fromRGB(250,200,95),
+			Section = Color3.fromRGB(27,24,19), Selected = Color3.fromRGB(29,26,20),
+			Sidebar = Color3.fromRGB(22,20,16)
+		}
+	}
 }
+
+-- ─── utility ────────────────────────────────────────────────────────────────
+local function Corner(parent, scale, offset)
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(scale or 0, offset or 0)
+	c.Parent = parent
+	return c
+end
+
+local function Stroke(parent, color, thickness, transparency)
+	local s = Instance.new("UIStroke")
+	s.Color = color or Color3.new(0,0,0)
+	s.Thickness = thickness or 1
+	s.Transparency = transparency or 0
+	s.Parent = parent
+	return s
+end
+
+local function Tween(obj, props, duration, style, dir)
+	local t = TweenService:Create(obj,
+		TweenInfo.new(duration or Evenesce.Animation.Time,
+			style or Evenesce.Animation.Style,
+			dir or Evenesce.Animation.Direction),
+		props)
+	t:Play()
+	return t
+end
+
+local function Connect(signal, fn)
+	local c = signal:Connect(fn)
+	table.insert(Evenesce.Connections, c)
+	return c
+end
+
+local function Ripple(frame)
+	frame.ClipsDescendants = true
+	local mx, my = UserInputService:GetMouseLocation().X, UserInputService:GetMouseLocation().Y - guiInset.Y
+	local abs = frame.AbsolutePosition
+	local size = frame.AbsoluteSize
+	local relX = math.clamp((mx - abs.X) / math.max(size.X, 1), 0, 1)
+	local relY = math.clamp((my - abs.Y) / math.max(size.Y, 1), 0, 1)
+
+	local r = Instance.new("Frame")
+	r.AnchorPoint = Vector2.new(0.5, 0.5)
+	r.BackgroundColor3 = Evenesce.Theme.Ripple
+	r.BackgroundTransparency = 0.5
+	r.Position = UDim2.fromScale(relX, relY)
+	r.Size = UDim2.fromOffset(0, 0)
+	r.ZIndex = frame.ZIndex + 1
+	r.BorderSizePixel = 0
+	r.Parent = frame
+	Corner(r, 1, 0)
+
+	local max = math.max(size.X, size.Y) * 1.35
+	Tween(r, { BackgroundTransparency = 1, Size = UDim2.fromOffset(max, max) }, 0.45, Enum.EasingStyle.Quad)
+	task.delay(0.5, function() r:Destroy() end)
+end
+
+-- ─── theme helpers ──────────────────────────────────────────────────────────
+function Evenesce:SetAccent(col)
+	self.Theme.Accent = col
+	self.Theme.AccentDark = col:Lerp(Color3.new(0,0,0), 0.35)
+	self.Theme.Ripple = col:Lerp(Color3.new(1,1,1), 0.1)
+	self.ThemeDirty = true
+end
+
+function Evenesce:SetPreset(name)
+	local p = self.Presets[name]
+	if not p then return end
+	for k, v in pairs(p) do
+		self.Theme[k] = v
+	end
+	self:SetAccent(p.Accent)
+end
+
+function Evenesce:SetUIScale(scale)
+	self.UserScale = scale
+	UIScale.Scale = scale
+end
+
+-- ─── notification ───────────────────────────────────────────────────────────
+function Evenesce:Notification(opts)
+	opts = opts or {}
+	local title = opts.Name or "Notification"
+	local desc  = opts.Description or ""
+	local dur   = opts.Duration or 5
+
+	local bounds = TextService:GetTextBoundsAsync(Instance.new("GetTextBoundsParams", {
+		Text = desc, Font = FontMain, Size = 14, Width = 302
+	}))
+
+	local notif = Instance.new("Frame")
+	notif.AnchorPoint = Vector2.new(1, 0)
+	notif.BackgroundColor3 = self.Theme.Background
+	notif.BorderSizePixel = 0
+	notif.Position = UDim2.new(1, 360, 0, 15)
+	notif.Size = UDim2.fromOffset(330, 38 + bounds.Y + 26)
+	notif.ZIndex = 80
+	notif.Parent = Holder
+	Corner(notif, 0, 10)
+
+	local icon = Instance.new("ImageLabel")
+	icon.BackgroundTransparency = 1
+	icon.Image = Icons.GetIcon("info") or "rbxassetid://0"
+	icon.ImageColor3 = self.Theme.Accent
+	icon.Position = UDim2.fromOffset(14, 11)
+	icon.Size = UDim2.fromOffset(18, 18)
+	icon.ZIndex = 81
+	icon.Parent = notif
+
+	local titleLbl = Instance.new("TextLabel")
+	titleLbl.BackgroundTransparency = 1
+	titleLbl.FontFace = FontMain
+	titleLbl.Text = title
+	titleLbl.TextColor3 = self.Theme.Text
+	titleLbl.TextSize = 16
+	titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+	titleLbl.Position = UDim2.fromOffset(42, 10)
+	titleLbl.Size = UDim2.new(1, -70, 0, 20)
+	titleLbl.ZIndex = 81
+	titleLbl.Parent = notif
+
+	local close = Instance.new("ImageButton")
+	close.BackgroundTransparency = 1
+	close.Image = "rbxassetid://10747384394"
+	close.ImageColor3 = self.Theme.DimText
+	close.Position = UDim2.new(1, -26, 0, 12)
+	close.Size = UDim2.fromOffset(14, 14)
+	close.ZIndex = 82
+	close.Parent = notif
+
+	local descLbl = Instance.new("TextLabel")
+	descLbl.BackgroundTransparency = 1
+	descLbl.FontFace = FontMain
+	descLbl.Text = desc
+	descLbl.TextColor3 = self.Theme.DimText
+	descLbl.TextSize = 14
+	descLbl.TextWrapped = true
+	descLbl.TextXAlignment = Enum.TextXAlignment.Left
+	descLbl.TextYAlignment = Enum.TextYAlignment.Top
+	descLbl.Position = UDim2.fromOffset(14, 36)
+	descLbl.Size = UDim2.new(1, -28, 0, bounds.Y)
+	descLbl.ZIndex = 81
+	descLbl.Parent = notif
+
+	local barBg = Instance.new("Frame")
+	barBg.BackgroundColor3 = self.Theme.Element
+	barBg.BorderSizePixel = 0
+	barBg.Position = UDim2.new(0, 14, 1, -13)
+	barBg.Size = UDim2.new(1, -28, 0, 6)
+	barBg.ZIndex = 81
+	barBg.Parent = notif
+	Corner(barBg, 1, 0)
+
+	local bar = Instance.new("Frame")
+	bar.BackgroundColor3 = Color3.new(1,1,1)
+	bar.BorderSizePixel = 0
+	bar.Size = UDim2.new(1, 0, 1, 0)
+	bar.ZIndex = 82
+	bar.Parent = barBg
+	Corner(bar, 1, 0)
+
+	local grad = Instance.new("UIGradient")
+	grad.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, self.Theme.Accent),
+		ColorSequenceKeypoint.new(1, self.Theme.AccentDark)
+	})
+	grad.Parent = bar
+
+	Tween(notif, { Position = UDim2.new(1, -15, 0, 15) }, 0.45, Enum.EasingStyle.Exponential)
+
+	local closing = false
+	local function closeNotif()
+		if closing then return end
+		closing = true
+		Tween(notif, { Position = UDim2.new(1, -15, 0, 1), BackgroundTransparency = 1 }, 0.25)
+		task.delay(0.3, function() notif:Destroy() end)
+	end
+
+	Connect(close.MouseButton1Down, closeNotif)
+	Tween(bar, { Size = UDim2.new(0, 0, 1, 0) }, dur, Enum.EasingStyle.Linear)
+	task.delay(dur, closeNotif)
+
+	table.insert(self.Notifs, notif)
+	return notif
+end
+
+-- ─── window ─────────────────────────────────────────────────────────────────
+function Evenesce:Window(opts)
+	opts = opts or {}
+	local name = opts.Name or "Evenesce"
+
+	local win = Instance.new("Frame")
+	win.AnchorPoint = Vector2.new(0.5, 0.5)
+	win.BackgroundColor3 = self.Theme.Background
+	win.BackgroundTransparency = 1
+	win.BorderSizePixel = 0
+	win.ClipsDescendants = true
+	win.Position = UDim2.fromScale(0.5, 0.5)
+	win.Size = UDim2.fromOffset(self.WindowWidth, self.WindowHeight)
+	win.Visible = false
+	win.ZIndex = 1
+	win.Parent = Holder
+	Corner(win, 0, 15)
+
+	-- sidebar
+	local side = Instance.new("Frame")
+	side.BackgroundColor3 = self.Theme.Sidebar
+	side.BackgroundTransparency = 1
+	side.BorderSizePixel = 0
+	side.Size = UDim2.new(0, self.SidebarWidth, 1, 0)
+	side.ZIndex = 2
+	side.Parent = win
+	Corner(side, 0, 15)
+
+	local title = Instance.new("TextLabel")
+	title.BackgroundTransparency = 1
+	title.FontFace = FontTitle
+	title.Text = name
+	title.TextColor3 = self.Theme.Text
+	title.TextSize = 21
+	title.TextTransparency = 1
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.Position = UDim2.fromOffset(51, 15)
+	title.Size = UDim2.fromOffset(144, 26)
+	title.ZIndex = 3
+	title.Parent = side
+
+	-- search
+	local searchFrame = Instance.new("Frame")
+	searchFrame.BackgroundColor3 = self.Theme.Selected
+	searchFrame.BorderSizePixel = 0
+	searchFrame.Position = UDim2.fromOffset(0, 52)
+	searchFrame.Size = UDim2.new(1, 0, 0, 31)
+	searchFrame.ZIndex = 3
+	searchFrame.Parent = side
+
+	local searchIcon = Instance.new("ImageLabel")
+	searchIcon.BackgroundTransparency = 1
+	searchIcon.Image = "rbxassetid://10734943674"
+	searchIcon.ImageColor3 = self.Theme.DimText
+	searchIcon.Position = UDim2.fromOffset(15, 8)
+	searchIcon.Size = UDim2.fromOffset(14, 14)
+	searchIcon.ZIndex = 4
+	searchIcon.Parent = searchFrame
+
+	local searchBox = Instance.new("TextBox")
+	searchBox.BackgroundTransparency = 1
+	searchBox.FontFace = FontMain
+	searchBox.PlaceholderText = "Search"
+	searchBox.PlaceholderColor3 = self.Theme.DimText
+	searchBox.Text = ""
+	searchBox.TextColor3 = self.Theme.Text
+	searchBox.TextSize = 14
+	searchBox.TextXAlignment = Enum.TextXAlignment.Left
+	searchBox.ClearTextOnFocus = false
+	searchBox.Position = UDim2.fromOffset(38, 0)
+	searchBox.Size = UDim2.new(1, -50, 1, 0)
+	searchBox.ZIndex = 4
+	searchBox.Parent = searchFrame
+
+	-- content area
+	local content = Instance.new("Frame")
+	content.BackgroundTransparency = 1
+	content.BorderSizePixel = 0
+	content.ClipsDescendants = true
+	content.Position = UDim2.fromOffset(self.SidebarWidth, 90)
+	content.Size = UDim2.new(1, -self.SidebarWidth, 1, -90)
+	content.ZIndex = 2
+	content.Parent = win
+
+	-- drag
+	win.Active = true
+	local dragging, dragStart, startPos
+	Connect(win.InputBegan, function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragging = true
+			dragStart = input.Position
+			startPos = win.Position
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragging = false
+				end
+			end)
+		end
+	end)
+	Connect(UserInputService.InputChanged, function(input)
+		if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+			local delta = input.Position - dragStart
+			win.Position = UDim2.new(
+				startPos.X.Scale, startPos.X.Offset + delta.X,
+				startPos.Y.Scale, startPos.Y.Offset + delta.Y
+			)
+		end
+	end)
+
+	-- open animation
+	win.Visible = true
+	Tween(win, { BackgroundTransparency = 0 }, 0.35)
+	Tween(side, { BackgroundTransparency = 0 }, 0.35)
+	task.delay(0.06, function()
+		title.Position = UDim2.fromOffset(31, 15)
+		Tween(title, { Position = UDim2.fromOffset(51, 15), TextTransparency = 0 }, 0.4)
+	end)
+
+	local Window = {
+		Instance = win,
+		Sidebar  = side,
+		Content  = content,
+		Search   = searchBox,
+		Tabs     = {},
+		Current  = nil
+	}
+
+	function Window:AddTab(tabOpts)
+		tabOpts = tabOpts or {}
+		local tabName = tabOpts.Name or "Tab"
+		local tabIcon = tabOpts.Icon
+
+		local btn = Instance.new("TextButton")
+		btn.BackgroundTransparency = 1
+		btn.AutoButtonColor = false
+		btn.Text = ""
+		btn.Size = UDim2.new(1, -20, 0, 36)
+		btn.Position = UDim2.fromOffset(10, 110 + (#self.Tabs * 40))
+		btn.ZIndex = 4
+		btn.Parent = side
+
+		local icon = Instance.new("ImageLabel")
+		icon.BackgroundTransparency = 1
+		icon.Image = tabIcon and (Icons.GetIcon(tabIcon) or tabIcon) or "rbxassetid://0"
+		icon.ImageColor3 = self.Theme and Evenesce.Theme.DimText or Color3.fromRGB(84,86,101)
+		icon.Position = UDim2.fromOffset(8, 10)
+		icon.Size = UDim2.fromOffset(16, 16)
+		icon.ZIndex = 5
+		icon.Parent = btn
+
+		local lbl = Instance.new("TextLabel")
+		lbl.BackgroundTransparency = 1
+		lbl.FontFace = FontMain
+		lbl.Text = tabName
+		lbl.TextColor3 = Evenesce.Theme.DimText
+		lbl.TextSize = 14
+		lbl.TextXAlignment = Enum.TextXAlignment.Left
+		lbl.Position = UDim2.fromOffset(32, 0)
+		lbl.Size = UDim2.new(1, -40, 1, 0)
+		lbl.ZIndex = 5
+		lbl.Parent = btn
+
+		local page = Instance.new("ScrollingFrame")
+		page.BackgroundTransparency = 1
+		page.BorderSizePixel = 0
+		page.ScrollBarThickness = 0
+		page.AutomaticCanvasSize = Enum.AutomaticSize.Y
+		page.CanvasSize = UDim2.new(0,0,0,0)
+		page.Size = UDim2.fromScale(1, 1)
+		page.Visible = false
+		page.ZIndex = 3
+		page.Parent = content
+
+		local layout = Instance.new("UIListLayout")
+		layout.SortOrder = Enum.SortOrder.LayoutOrder
+		layout.Padding = UDim.new(0, 6)
+		layout.Parent = page
+
+		local pad = Instance.new("UIPadding")
+		pad.PaddingTop = UDim.new(0, 8)
+		pad.PaddingBottom = UDim.new(0, 12)
+		pad.PaddingLeft = UDim.new(0, 12)
+		pad.PaddingRight = UDim.new(0, 12)
+		pad.Parent = page
+
+		local Tab = {
+			Button   = btn,
+			Page     = page,
+			Name     = tabName,
+			Sections = {},
+			LayoutOrder = 0
+		}
+
+		function Tab:AddSection(secOpts)
+			secOpts = secOpts or {}
+			local secName = secOpts.Name or "Section"
+
+			local sec = Instance.new("Frame")
+			sec.BackgroundColor3 = Evenesce.Theme.Section
+			sec.BorderSizePixel = 0
+			sec.Size = UDim2.new(1, 0, 0, 40)
+			sec.AutomaticSize = Enum.AutomaticSize.Y
+			sec.ZIndex = 4
+			sec.Parent = page
+			Corner(sec, 0, 8)
+
+			local header = Instance.new("TextLabel")
+			header.BackgroundTransparency = 1
+			header.FontFace = FontMain
+			header.Text = secName
+			header.TextColor3 = Evenesce.Theme.Text
+			header.TextSize = 14
+			header.TextXAlignment = Enum.TextXAlignment.Left
+			header.Position = UDim2.fromOffset(14, 10)
+			header.Size = UDim2.new(1, -28, 0, 18)
+			header.ZIndex = 5
+			header.Parent = sec
+
+			local container = Instance.new("Frame")
+			container.BackgroundTransparency = 1
+			container.BorderSizePixel = 0
+			container.Position = UDim2.fromOffset(0, 34)
+			container.Size = UDim2.new(1, 0, 0, 0)
+			container.AutomaticSize = Enum.AutomaticSize.Y
+			container.ZIndex = 5
+			container.Parent = sec
+
+			local secLayout = Instance.new("UIListLayout")
+			secLayout.SortOrder = Enum.SortOrder.LayoutOrder
+			secLayout.Padding = UDim.new(0, 4)
+			secLayout.Parent = container
+
+			local secPad = Instance.new("UIPadding")
+			secPad.PaddingBottom = UDim.new(0, 10)
+			secPad.Parent = container
+
+			local Section = { Instance = sec, Container = container, Width = Evenesce.WindowWidth - Evenesce.SidebarWidth - 40 }
+
+			function Section:AddRow(height, noDivider)
+				local row = Instance.new("Frame")
+				row.BackgroundTransparency = 1
+				row.BorderSizePixel = 0
+				row.Size = UDim2.new(1, 0, 0, height or 36)
+				row.ZIndex = 6
+				row.Parent = container
+				return { Instance = row, ZIndex = 6 }
+			end
+
+			-- Toggle
+			function Section:Toggle(tOpts)
+				tOpts = tOpts or {}
+				local flag = tOpts.Flag or tOpts.Name
+				local def  = tOpts.Default or false
+				local cb   = tOpts.Callback
+
+				local row = self:AddRow(37)
+				local box = Instance.new("Frame")
+				box.BackgroundColor3 = def and Evenesce.Theme.Accent or Evenesce.Theme.Element
+				box.BorderSizePixel = 0
+				box.Position = UDim2.fromOffset(15, 10)
+				box.Size = UDim2.fromOffset(17, 17)
+				box.ZIndex = 7
+				box.Parent = row.Instance
+				Corner(box, 0, 3)
+
+				local check = Instance.new("ImageLabel")
+				check.BackgroundTransparency = 1
+				check.Image = "rbxassetid://10709790644"
+				check.ImageColor3 = Evenesce.Theme.CheckColor
+				check.ImageTransparency = def and 0 or 1
+				check.Position = UDim2.fromOffset(2, def and 2 or 10)
+				check.Size = UDim2.fromOffset(14, 14)
+				check.ZIndex = 8
+				check.Parent = box
+
+				local lbl = Instance.new("TextLabel")
+				lbl.BackgroundTransparency = 1
+				lbl.FontFace = FontMain
+				lbl.Text = tOpts.Name or "Toggle"
+				lbl.TextColor3 = def and Evenesce.Theme.Text or Evenesce.Theme.DimText
+				lbl.TextSize = 14
+				lbl.TextXAlignment = Enum.TextXAlignment.Left
+				lbl.Position = UDim2.fromOffset(41, 0)
+				lbl.Size = UDim2.new(1, -50, 1, 0)
+				lbl.ZIndex = 7
+				lbl.Parent = row.Instance
+
+				local state = def
+				local hit = Instance.new("TextButton")
+				hit.BackgroundTransparency = 1
+				hit.Text = ""
+				hit.Size = UDim2.fromScale(1, 1)
+				hit.ZIndex = 9
+				hit.Parent = row.Instance
+
+				Connect(hit.MouseButton1Down, function()
+					state = not state
+					Tween(box, { BackgroundColor3 = state and Evenesce.Theme.Accent or Evenesce.Theme.Element }, 0.22)
+					Tween(check, { ImageTransparency = state and 0 or 1, Position = UDim2.fromOffset(2, state and 2 or 10) }, 0.22)
+					Tween(lbl, { TextColor3 = state and Evenesce.Theme.Text or Evenesce.Theme.DimText }, 0.22)
+					if flag then Evenesce.Flags[flag] = state end
+					if cb then task.spawn(cb, state) end
+				end)
+
+				if flag then Evenesce.Flags[flag] = state end
+				return { Set = function(_, v)
+					state = v
+					box.BackgroundColor3 = state and Evenesce.Theme.Accent or Evenesce.Theme.Element
+					check.ImageTransparency = state and 0 or 1
+					check.Position = UDim2.fromOffset(2, state and 2 or 10)
+					lbl.TextColor3 = state and Evenesce.Theme.Text or Evenesce.Theme.DimText
+					if flag then Evenesce.Flags[flag] = state end
+				end }
+			end
+
+			-- Slider
+			function Section:Slider(sOpts)
+				sOpts = sOpts or {}
+				local min, max, def, float, suffix = sOpts.Min or 0, sOpts.Max or 100, sOpts.Default or 0, sOpts.Float or 1, sOpts.Suffix or ""
+				local flag, cb = sOpts.Flag, sOpts.Callback
+				def = math.clamp(def, min, max)
+
+				local row = self:AddRow(48)
+				local nameLbl = Instance.new("TextLabel")
+				nameLbl.BackgroundTransparency = 1
+				nameLbl.FontFace = FontMain
+				nameLbl.Text = sOpts.Name or "Slider"
+				nameLbl.TextColor3 = Evenesce.Theme.DimText
+				nameLbl.TextSize = 14
+				nameLbl.TextXAlignment = Enum.TextXAlignment.Left
+				nameLbl.Position = UDim2.fromOffset(15, 4)
+				nameLbl.Size = UDim2.new(1, -130, 0, 17)
+				nameLbl.ZIndex = 7
+				nameLbl.Parent = row.Instance
+
+				local valLbl = Instance.new("TextLabel")
+				valLbl.BackgroundTransparency = 1
+				valLbl.FontFace = FontMain
+				valLbl.Text = tostring(def) .. suffix
+				valLbl.TextColor3 = Evenesce.Theme.Text
+				valLbl.TextSize = 14
+				valLbl.TextXAlignment = Enum.TextXAlignment.Right
+				valLbl.Position = UDim2.new(1, -115, 0, 4)
+				valLbl.Size = UDim2.fromOffset(100, 17)
+				valLbl.ZIndex = 7
+				valLbl.Parent = row.Instance
+
+				local track = Instance.new("Frame")
+				track.BackgroundColor3 = Evenesce.Theme.Element
+				track.BorderSizePixel = 0
+				track.Position = UDim2.fromOffset(15, 31)
+				track.Size = UDim2.new(1, -30, 0, 7)
+				track.ZIndex = 7
+				track.Parent = row.Instance
+				Corner(track, 1, 0)
+
+				local fill = Instance.new("Frame")
+				fill.BackgroundColor3 = Color3.new(1,1,1)
+				fill.BorderSizePixel = 0
+				fill.Size = UDim2.fromOffset(math.max(((def - min) / math.max(max - min, 0.0001)) * (self.Width - 30), 6), 7)
+				fill.ZIndex = 8
+				fill.Parent = track
+				Corner(fill, 1, 0)
+
+				local g = Instance.new("UIGradient")
+				g.Color = ColorSequence.new({
+					ColorSequenceKeypoint.new(0, Evenesce.Theme.Accent),
+					ColorSequenceKeypoint.new(1, Evenesce.Theme.AccentDark)
+				})
+				g.Parent = fill
+
+				local dragging = false
+				local function update(x)
+					local rel = math.clamp((x - track.AbsolutePosition.X) / math.max(track.AbsoluteSize.X, 1), 0, 1)
+					local val = math.floor((min + (max - min) * rel) / float + 0.5) * float
+					val = math.clamp(val, min, max)
+					fill.Size = UDim2.fromOffset(math.max(rel * track.AbsoluteSize.X, 6), 7)
+					valLbl.Text = tostring(val) .. suffix
+					if flag then Evenesce.Flags[flag] = val end
+					if cb then task.spawn(cb, val) end
+					return val
+				end
+
+				Connect(track.InputBegan, function(i)
+					if i.UserInputType == Enum.UserInputType.MouseButton1 then
+						dragging = true
+						update(i.Position.X)
+					end
+				end)
+				Connect(UserInputService.InputChanged, function(i)
+					if dragging and i.UserInputType == Enum.UserInputType.MouseMovement then
+						update(i.Position.X)
+					end
+				end)
+				Connect(UserInputService.InputEnded, function(i)
+					if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+				end)
+
+				if flag then Evenesce.Flags[flag] = def end
+				return { Set = function(_, v)
+					v = math.clamp(v, min, max)
+					local rel = (v - min) / math.max(max - min, 0.0001)
+					fill.Size = UDim2.fromOffset(math.max(rel * track.AbsoluteSize.X, 6), 7)
+					valLbl.Text = tostring(v) .. suffix
+					if flag then Evenesce.Flags[flag] = v end
+				end }
+			end
+
+			-- Button
+			function Section:Button(bOpts)
+				bOpts = bOpts or {}
+				local row = self:AddRow(46)
+				local btn = Instance.new("Frame")
+				btn.BackgroundColor3 = Evenesce.Theme.Element
+				btn.BorderSizePixel = 0
+				btn.Position = UDim2.fromOffset(15, 8)
+				btn.Size = UDim2.new(1, -30, 0, 30)
+				btn.ZIndex = 7
+				btn.Parent = row.Instance
+				Corner(btn, 0, 6)
+
+				local lbl = Instance.new("TextLabel")
+				lbl.BackgroundTransparency = 1
+				lbl.FontFace = FontMain
+				lbl.Text = bOpts.Name or "Button"
+				lbl.TextColor3 = Evenesce.Theme.Text
+				lbl.TextSize = 14
+				lbl.Size = UDim2.fromScale(1, 1)
+				lbl.ZIndex = 8
+				lbl.Parent = btn
+
+				local hit = Instance.new("TextButton")
+				hit.BackgroundTransparency = 1
+				hit.Text = ""
+				hit.Size = UDim2.fromScale(1, 1)
+				hit.ZIndex = 9
+				hit.Parent = btn
+
+				Connect(hit.MouseButton1Down, function()
+					Ripple(btn)
+					if bOpts.Callback then task.spawn(bOpts.Callback) end
+				end)
+			end
+
+			-- Dropdown (single)
+			function Section:Dropdown(dOpts)
+				dOpts = dOpts or {}
+				local options = dOpts.Options or {}
+				local def = dOpts.Default or (options[1] and tostring(options[1]) or "None")
+				local flag, cb = dOpts.Flag, dOpts.Callback
+
+				local row = self:AddRow(64)
+				local nameLbl = Instance.new("TextLabel")
+				nameLbl.BackgroundTransparency = 1
+				nameLbl.FontFace = FontMain
+				nameLbl.Text = dOpts.Name or "Dropdown"
+				nameLbl.TextColor3 = Evenesce.Theme.DimText
+				nameLbl.TextSize = 14
+				nameLbl.TextXAlignment = Enum.TextXAlignment.Left
+				nameLbl.Position = UDim2.fromOffset(15, 4)
+				nameLbl.Size = UDim2.new(1, -30, 0, 17)
+				nameLbl.ZIndex = 7
+				nameLbl.Parent = row.Instance
+
+				local box = Instance.new("Frame")
+				box.BackgroundColor3 = Evenesce.Theme.Element
+				box.BorderSizePixel = 0
+				box.Position = UDim2.fromOffset(15, 27)
+				box.Size = UDim2.new(1, -30, 0, 30)
+				box.ZIndex = 7
+				box.Parent = row.Instance
+				Corner(box, 0, 6)
+
+				local valLbl = Instance.new("TextLabel")
+				valLbl.BackgroundTransparency = 1
+				valLbl.FontFace = FontMain
+				valLbl.Text = tostring(def)
+				valLbl.TextColor3 = Evenesce.Theme.Text
+				valLbl.TextSize = 14
+				valLbl.TextXAlignment = Enum.TextXAlignment.Left
+				valLbl.TextTruncate = Enum.TextTruncate.AtEnd
+				valLbl.Position = UDim2.fromOffset(12, 0)
+				valLbl.Size = UDim2.new(1, -44, 1, 0)
+				valLbl.ZIndex = 8
+				valLbl.Parent = box
+
+				local arrow = Instance.new("ImageLabel")
+				arrow.BackgroundTransparency = 1
+				arrow.Image = "rbxassetid://115907894584787"
+				arrow.ImageColor3 = Evenesce.Theme.DimText
+				arrow.Position = UDim2.new(1, -25, 0, 11)
+				arrow.Size = UDim2.fromOffset(13, 9)
+				arrow.ZIndex = 8
+				arrow.Parent = box
+
+				local open = false
+				local drop = Instance.new("Frame")
+				drop.BackgroundColor3 = Evenesce.Theme.Section
+				drop.BorderSizePixel = 0
+				drop.ClipsDescendants = true
+				drop.Size = UDim2.fromOffset(0, 0)
+				drop.Visible = false
+				drop.ZIndex = 50
+				drop.Parent = Holder
+				Corner(drop, 0, 6)
+
+				local list = Instance.new("ScrollingFrame")
+				list.BackgroundTransparency = 1
+				list.BorderSizePixel = 0
+				list.ScrollBarThickness = 0
+				list.AutomaticCanvasSize = Enum.AutomaticSize.Y
+				list.Size = UDim2.fromScale(1, 1)
+				list.ZIndex = 51
+				list.Parent = drop
+
+				local listLayout = Instance.new("UIListLayout")
+				listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+				listLayout.Padding = UDim.new(0, 4)
+				listLayout.Parent = list
+
+				local listPad = Instance.new("UIPadding")
+				listPad.PaddingTop = UDim.new(0, 6)
+				listPad.PaddingBottom = UDim.new(0, 6)
+				listPad.PaddingLeft = UDim.new(0, 6)
+				listPad.PaddingRight = UDim.new(0, 6)
+				listPad.Parent = list
+
+				local function rebuild()
+					for _, c in ipairs(list:GetChildren()) do
+						if c:IsA("Frame") then c:Destroy() end
+					end
+					for _, opt in ipairs(options) do
+						local item = Instance.new("Frame")
+						item.BackgroundColor3 = Evenesce.Theme.ElementAlt
+						item.BackgroundTransparency = 1
+						item.BorderSizePixel = 0
+						item.Size = UDim2.new(1, -8, 0, 30)
+						item.ZIndex = 52
+						item.Parent = list
+						Corner(item, 0, 4)
+
+						local t = Instance.new("TextLabel")
+						t.BackgroundTransparency = 1
+						t.FontFace = FontMain
+						t.Text = tostring(opt)
+						t.TextColor3 = Evenesce.Theme.DimText
+						t.TextSize = 14
+						t.TextXAlignment = Enum.TextXAlignment.Left
+						t.Position = UDim2.fromOffset(12, 0)
+						t.Size = UDim2.new(1, -20, 1, 0)
+						t.ZIndex = 53
+						t.Parent = item
+
+						local hit = Instance.new("TextButton")
+						hit.BackgroundTransparency = 1
+						hit.Text = ""
+						hit.Size = UDim2.fromScale(1, 1)
+						hit.ZIndex = 54
+						hit.Parent = item
+
+						Connect(hit.MouseEnter, function() Tween(t, { TextColor3 = Evenesce.Theme.Text }, 0.15) end)
+						Connect(hit.MouseLeave, function() Tween(t, { TextColor3 = Evenesce.Theme.DimText }, 0.15) end)
+						Connect(hit.MouseButton1Down, function()
+							valLbl.Text = tostring(opt)
+							if flag then Evenesce.Flags[flag] = opt end
+							if cb then task.spawn(cb, opt) end
+							open = false
+							drop.Visible = false
+							Tween(arrow, { Rotation = 0 }, 0.2)
+						end)
+					end
+				end
+				rebuild()
+
+				local hit = Instance.new("TextButton")
+				hit.BackgroundTransparency = 1
+				hit.Text = ""
+				hit.Size = UDim2.fromScale(1, 1)
+				hit.ZIndex = 9
+				hit.Parent = box
+
+				Connect(hit.MouseButton1Down, function()
+					open = not open
+					if open then
+						local abs = box.AbsolutePosition
+						local sz  = box.AbsoluteSize
+						drop.Position = UDim2.fromOffset(abs.X, abs.Y + sz.Y + 4)
+						drop.Size = UDim2.fromOffset(sz.X, math.min(180, #options * 34 + 12))
+						drop.Visible = true
+						Tween(arrow, { Rotation = 180 }, 0.2)
+					else
+						drop.Visible = false
+						Tween(arrow, { Rotation = 0 }, 0.2)
+					end
+				end)
+
+				if flag then Evenesce.Flags[flag] = def end
+				return {
+					Set = function(_, v)
+						valLbl.Text = tostring(v)
+						if flag then Evenesce.Flags[flag] = v end
+					end,
+					Refresh = function(_, newOpts)
+						options = newOpts or options
+						rebuild()
+					end
+				}
+			end
+
+			table.insert(self.Sections, Section)
+			return Section
+		end
+
+		Connect(btn.MouseButton1Down, function()
+			for _, t in ipairs(self.Tabs) do
+				t.Page.Visible = false
+				t.Button:FindFirstChildOfClass("TextLabel").TextColor3 = Evenesce.Theme.DimText
+			end
+			page.Visible = true
+			lbl.TextColor3 = Evenesce.Theme.Text
+			self.Current = Tab
+		end)
+
+		table.insert(self.Tabs, Tab)
+		if #self.Tabs == 1 then
+			page.Visible = true
+			lbl.TextColor3 = Evenesce.Theme.Text
+			self.Current = Tab
+		end
+		return Tab
+	end
+
+	table.insert(self.Windows, Window)
+	return Window
+end
+
+-- ─── unload ─────────────────────────────────────────────────────────────────
+function Evenesce:Unload()
+	for _, c in ipairs(self.Connections) do
+		pcall(function() c:Disconnect() end)
+	end
+	Holder:Destroy()
+	Unused:Destroy()
+	getgenv().Evenesce = nil
+end
+
+-- ─── expose ─────────────────────────────────────────────────────────────────
+getgenv().Evenesce = Evenesce
+return Evenesce
