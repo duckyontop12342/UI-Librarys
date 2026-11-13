@@ -57,14 +57,65 @@ local Library = {
 local themeHooks = {}
 local libraryConnections = {}
 
-local lucideLoaded, Lucide = pcall(function()
-	return loadstring(game:HttpGet(LUCIDE_URL))()
-end)
+---Load Lucide with its file cache redirected into a folder named after the sprite-sheet version.
+---A reused path lets the client keep serving an old sheet against the new name list, which
+---shows up as every icon being the wrong one.
+local function loadLucide()
+	local source = game:HttpGet(LUCIDE_URL)
+	local version = source:match('~= "([^"]+)"') or "unknown"
+	local folder = "serpent/lucide_" .. (version:gsub("[^%w]", "_"))
+
+	if writefile and isfolder and makefolder and getcustomasset and not isfolder("serpent") then
+		makefolder("serpent")
+	end
+
+	local function redirect(path)
+		if type(path) ~= "string" then return path end
+		return (path:gsub("^lucide%-icons", function() return folder end))
+	end
+	local function wrap(fn)
+		if not fn then return nil end
+		return function(path, ...) return fn(redirect(path), ...) end
+	end
+
+	-- Locals shadow the executor globals for the module without touching its source.
+	local prefix = "local __r = ...\nlocal isfolder, makefolder, isfile, readfile, writefile, getcustomasset = __r.isfolder, __r.makefolder, __r.isfile, __r.readfile, __r.writefile, __r.getcustomasset\n"
+	local chunk = loadstring(prefix .. source)
+	return chunk({
+		isfolder = wrap(isfolder),
+		makefolder = wrap(makefolder),
+		isfile = wrap(isfile),
+		readfile = wrap(readfile),
+		writefile = wrap(writefile),
+		getcustomasset = wrap(getcustomasset),
+	})
+end
+
+local lucideLoaded, Lucide = pcall(loadLucide)
 if not lucideLoaded then
+	warn("Serpent: Lucide failed to load, icons will be blank. " .. tostring(Lucide))
 	Lucide = nil
-	warn("Serpent: Lucide failed to load, icons will be blank.")
 end
 Library.Lucide = Lucide
+
+---Download a remote image once and return a local asset for it.
+---@param url string
+---@return string?
+local function resolveRemoteImage(url)
+	if not (writefile and isfile and isfolder and makefolder and getcustomasset) then return nil end
+	if not isfolder("serpent") then makefolder("serpent") end
+	if not isfolder("serpent/images") then makefolder("serpent/images") end
+
+	local path = string.format("serpent/images/%s.png", url:gsub("[^%w]", "_"):sub(-80))
+	if not isfile(path) then
+		local ok, data = pcall(game.HttpGet, game, url)
+		if not ok then return nil end
+		writefile(path, data)
+	end
+
+	local ok, asset = pcall(getcustomasset, path)
+	return ok and asset or nil
+end
 
 ---Apply a Lucide icon name (or a raw rbxassetid) to an image object.
 ---@param image ImageLabel|ImageButton
@@ -72,6 +123,12 @@ Library.Lucide = Lucide
 ---@return boolean
 local function setIcon(image, name)
 	if type(name) ~= "string" then return false end
+	if name:find("^https?://") then
+		local asset = resolveRemoteImage(name)
+		if not asset then return false end
+		image.Image = asset
+		return true
+	end
 	if name:find("^rbxasset") then
 		image.Image = name
 		return true
@@ -508,8 +565,9 @@ function Library:Window(options)
 	local logoOffset = 0
 	local logoIcon
 	if options.Logo then
-		logoIcon = create("ImageLabel", { Size = UDim2.fromOffset(20, 20), BackgroundTransparency = 1, ImageColor3 = Theme.Accent, Parent = logoHolder })
-		setIcon(logoIcon, options.Logo)
+		logoIcon = create("ImageLabel", { Size = UDim2.fromOffset(20, 20), BackgroundTransparency = 1, ScaleType = Enum.ScaleType.Fit, ImageColor3 = Color3.new(1, 1, 1), Parent = logoHolder })
+		-- Lucide name, rbxassetid or image URL; downloads must not block window creation.
+		task.spawn(setIcon, logoIcon, options.Logo)
 		logoOffset = 26
 	end
 	local logoLabel = create("TextLabel", { Size = UDim2.new(1, -logoOffset, 1, 0), Position = UDim2.fromOffset(logoOffset, 0), BackgroundTransparency = 1, RichText = true, Text = "", TextColor3 = Theme.TextPrimary, Font = Theme.Font, TextSize = 16, TextXAlignment = Enum.TextXAlignment.Left, Parent = logoHolder })
@@ -540,7 +598,6 @@ function Library:Window(options)
 		sidebar.BackgroundColor3 = Theme.Sidebar
 		logoLabel.TextColor3 = Theme.TextPrimary
 		logoLabel.Text = string.format('<b>%s</b> <font color="#%s">%s</font>', options.Title or "Serpent", Theme.NavText:ToHex(), options.Suffix or "")
-		if logoIcon then logoIcon.ImageColor3 = Theme.Accent end
 		navPill.BackgroundColor3 = Theme.Accent
 		versionLabel.TextColor3 = Theme.TextSecondary
 		closeBtn.ImageColor3 = Theme.TextSecondary
