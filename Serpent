@@ -1,4 +1,4 @@
--- Serpent UI Library - Kurex style
+-- Serpent UI Library v2 (Kurex style, animated)
 -- Window -> Tab -> Section / Label / Divider / Button / Textbox / Keybind / Toggle / Slider / Dropdown / Pills / BodySelector / Colorpicker / Split
 
 -- Services.
@@ -10,24 +10,30 @@ local httpService = game:GetService("HttpService")
 local coreGui = game:GetService("CoreGui")
 
 -- Constants.
+local TWEEN_DRAG = TweenInfo.new(0.09, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 local TWEEN_FAST = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-local TWEEN_SMOOTH = TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+local TWEEN_SMOOTH = TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+local TWEEN_SLOW = TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+local TWEEN_POP = TweenInfo.new(0.38, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 local SIDEBAR_WIDTH = 148
+local NAV_ITEM_HEIGHT = 30
+local NAV_ITEM_GAP = 4
+local PAGE_POSITION = UDim2.fromOffset(20, 28)
 
 -- State.
 local localPlayer = playersService.LocalPlayer
 
 local Theme = {
-	Body = Color3.fromRGB(18, 18, 18),
-	Sidebar = Color3.fromRGB(10, 10, 10),
-	Surface = Color3.fromRGB(28, 28, 28),
-	Track = Color3.fromRGB(52, 52, 52),
-	Border = Color3.fromRGB(40, 40, 40),
-	TextPrimary = Color3.fromRGB(235, 235, 235),
-	TextSecondary = Color3.fromRGB(125, 125, 125),
-	NavText = Color3.fromRGB(190, 190, 190),
+	Body = Color3.fromRGB(18, 18, 20),
+	Sidebar = Color3.fromRGB(11, 11, 13),
+	Surface = Color3.fromRGB(28, 28, 31),
+	Track = Color3.fromRGB(50, 50, 55),
+	Border = Color3.fromRGB(40, 40, 45),
+	TextPrimary = Color3.fromRGB(236, 236, 240),
+	TextSecondary = Color3.fromRGB(125, 125, 135),
+	NavText = Color3.fromRGB(180, 180, 190),
 	Accent = Color3.fromRGB(255, 255, 255),
-	AccentText = Color3.fromRGB(18, 18, 18),
+	AccentText = Color3.fromRGB(18, 18, 20),
 	Font = Enum.Font.GothamMedium,
 }
 
@@ -39,7 +45,6 @@ local Library = {
 	Icons = {
 		Placeholder = "rbxassetid://11419709766",
 		Chevron = "rbxassetid://11421095840",
-		Pipette = "rbxassetid://11419718822",
 		Gear = nil,
 	},
 }
@@ -81,6 +86,10 @@ local function corner(parent, radius)
 	return create("UICorner", { CornerRadius = UDim.new(0, radius), Parent = parent })
 end
 
+local function lighten(color, amount)
+	return color:Lerp(Color3.new(1, 1, 1), amount)
+end
+
 local function isPress(input)
 	return input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch
 end
@@ -99,22 +108,63 @@ local function formatKeyName(key)
 	return name
 end
 
+---Tween a property between two theme-aware colors on hover.
+local function addHover(object, normal, hovered, property)
+	property = property or "BackgroundColor3"
+	object.MouseEnter:Connect(function() tween(object, TWEEN_FAST, { [property] = hovered() }) end)
+	object.MouseLeave:Connect(function() tween(object, TWEEN_FAST, { [property] = normal() }) end)
+end
+
+---Squash the object slightly while it is pressed.
+local function addPress(object, amount)
+	local scale = create("UIScale", { Parent = object })
+	local function release() tween(scale, TWEEN_FAST, { Scale = 1 }) end
+	object.MouseButton1Down:Connect(function() tween(scale, TWEEN_DRAG, { Scale = amount or 0.96 }) end)
+	object.MouseButton1Up:Connect(release)
+	object.MouseLeave:Connect(release)
+	return scale
+end
+
 ---Checkbox used by Toggle, Pills and Slider.
 local function makeCheck(parent, initial, onChange)
 	local state = initial and true or false
-	local box = create("TextButton", { Size = UDim2.fromOffset(20, 20), Text = state and "✓" or "", TextColor3 = Theme.AccentText, Font = Enum.Font.GothamBold, TextSize = 13, AutoButtonColor = false, BackgroundColor3 = state and Theme.Accent or Theme.Track, Parent = parent })
+	local box = create("TextButton", { Size = UDim2.fromOffset(20, 20), Text = "", AutoButtonColor = false, BackgroundColor3 = Theme.Track, Parent = parent })
 	corner(box, 5)
-	local function paint()
-		box.BackgroundColor3 = state and Theme.Accent or Theme.Track
-		box.TextColor3 = Theme.AccentText
-		box.Text = state and "✓" or ""
+	local stroke = create("UIStroke", { Color = Theme.Border, Thickness = 1, Parent = box })
+	local mark = create("TextLabel", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "✓", TextColor3 = Theme.AccentText, Font = Enum.Font.GothamBold, TextSize = 13, Parent = box })
+	local pop = create("UIScale", { Parent = box })
+
+	local function paint(animate)
+		local goal = { BackgroundColor3 = state and Theme.Accent or Theme.Track }
+		local markGoal = { TextTransparency = state and 0 or 1, TextColor3 = Theme.AccentText }
+		local strokeGoal = { Transparency = state and 1 or 0 }
+		if animate then
+			tween(box, TWEEN_FAST, goal)
+			tween(mark, TWEEN_FAST, markGoal)
+			tween(stroke, TWEEN_FAST, strokeGoal)
+		else
+			box.BackgroundColor3 = goal.BackgroundColor3
+			mark.TextTransparency = markGoal.TextTransparency
+			mark.TextColor3 = markGoal.TextColor3
+			stroke.Transparency = strokeGoal.Transparency
+		end
 	end
-	bindTheme(paint)
+	bindTheme(function() paint(false) end)
+
+	box.MouseEnter:Connect(function()
+		if not state then tween(box, TWEEN_FAST, { BackgroundColor3 = lighten(Theme.Track, 0.1) }) end
+	end)
+	box.MouseLeave:Connect(function()
+		if not state then tween(box, TWEEN_FAST, { BackgroundColor3 = Theme.Track }) end
+	end)
+
 	local check = { Button = box }
 	function check.Get() return state end
 	function check.Set(value, fire)
 		state = value and true or false
-		paint()
+		paint(true)
+		pop.Scale = 0.78
+		tween(pop, TWEEN_POP, { Scale = 1 })
 		if fire and onChange then onChange(state) end
 	end
 	box.MouseButton1Click:Connect(function() check.Set(not state, true) end)
@@ -208,14 +258,17 @@ local function buildDropdown(Window, parent, opts, compact)
 	local height = compact and 24 or 36
 	local button = create("TextButton", { Size = opts.Width and UDim2.fromOffset(opts.Width, height) or UDim2.new(1, 0, 0, height), BackgroundColor3 = Theme.Surface, Text = "", AutoButtonColor = false, Parent = parent })
 	corner(button, compact and 5 or 8)
+	local buttonStroke = create("UIStroke", { Color = Theme.Border, Thickness = 1, Transparency = 0.4, Parent = button })
+	addPress(button, 0.985)
 	local label = create("TextLabel", { Size = UDim2.new(1, -30, 1, 0), Position = UDim2.fromOffset(compact and 8 or 14, 0), BackgroundTransparency = 1, Text = "", TextColor3 = Theme.TextPrimary, Font = Theme.Font, TextSize = compact and 12 or 13, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Parent = button })
 	local chevron = create("ImageLabel", { Size = UDim2.fromOffset(14, 14), Position = UDim2.new(1, -20, 0.5, -7), BackgroundTransparency = 1, Image = Library.Icons.Chevron, ImageColor3 = Theme.TextPrimary, Parent = button })
+	addHover(button, function() return Theme.Surface end, function() return lighten(Theme.Surface, 0.05) end)
 
 	local menu = create("ScrollingFrame", { Size = UDim2.fromOffset(120, 0), BackgroundColor3 = Theme.Surface, Visible = false, ClipsDescendants = true, ZIndex = 4000, BorderSizePixel = 0, ScrollBarThickness = 2, ScrollBarImageColor3 = Theme.Track, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Parent = Window.ScreenGui })
 	corner(menu, 8)
 	local menuStroke = create("UIStroke", { Color = Theme.Border, Thickness = 1, Parent = menu })
-	create("UIPadding", { PaddingTop = UDim.new(0, 4), PaddingBottom = UDim.new(0, 4), Parent = menu })
-	local menuLayout = create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Parent = menu })
+	create("UIPadding", { PaddingTop = UDim.new(0, 4), PaddingBottom = UDim.new(0, 4), PaddingLeft = UDim.new(0, 4), PaddingRight = UDim.new(0, 4), Parent = menu })
+	local menuLayout = create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 2), Parent = menu })
 
 	local buttons, open, follow = {}, false, nil
 
@@ -224,9 +277,16 @@ local function buildDropdown(Window, parent, opts, compact)
 		label.Text = text == "" and placeholder or text
 	end
 	local function menuHeight() return math.min(menuLayout.AbsoluteContentSize.Y + 8, 170) end
-	local function paintOptions()
+	local function optionColor(option)
+		return table.find(selected, option) and Theme.Accent or Theme.TextSecondary
+	end
+	local function paintOptions(animate)
 		for option, optionButton in pairs(buttons) do
-			optionButton.TextColor3 = table.find(selected, option) and Theme.Accent or Theme.TextSecondary
+			if animate then
+				tween(optionButton, TWEEN_FAST, { TextColor3 = optionColor(option) })
+			else
+				optionButton.TextColor3 = optionColor(option)
+			end
 		end
 	end
 
@@ -236,6 +296,7 @@ local function buildDropdown(Window, parent, opts, compact)
 	function popup.Close()
 		open = false
 		tween(chevron, TWEEN_SMOOTH, { Rotation = 0 })
+		tween(buttonStroke, TWEEN_FAST, { Color = Theme.Border })
 		local t = tween(menu, TWEEN_SMOOTH, { Size = UDim2.fromOffset(menu.Size.X.Offset, 0) })
 		t.Completed:Once(function()
 			if not open then
@@ -257,7 +318,7 @@ local function buildDropdown(Window, parent, opts, compact)
 		elseif type(value) == "table" and #value > 0 then
 			table.insert(selected, value[1])
 		end
-		paintOptions()
+		paintOptions(true)
 		updateText()
 		if fire then callback(multi and selected or selected[1]) end
 	end
@@ -272,9 +333,12 @@ local function buildDropdown(Window, parent, opts, compact)
 		end
 		selected = kept
 		for index, option in ipairs(list) do
-			local optionButton = create("TextButton", { Size = UDim2.new(1, 0, 0, 26), BackgroundTransparency = 1, Text = option, TextColor3 = Theme.TextSecondary, Font = Theme.Font, TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, LayoutOrder = index, ZIndex = 4001, Parent = menu })
-			create("UIPadding", { PaddingLeft = UDim.new(0, 12), Parent = optionButton })
+			local optionButton = create("TextButton", { Size = UDim2.new(1, 0, 0, 26), BackgroundColor3 = Theme.Track, BackgroundTransparency = 1, Text = option, TextColor3 = Theme.TextSecondary, Font = Theme.Font, TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, AutoButtonColor = false, LayoutOrder = index, ZIndex = 4001, Parent = menu })
+			corner(optionButton, 5)
+			create("UIPadding", { PaddingLeft = UDim.new(0, 10), Parent = optionButton })
 			buttons[option] = optionButton
+			optionButton.MouseEnter:Connect(function() tween(optionButton, TWEEN_FAST, { BackgroundTransparency = 0.55 }) end)
+			optionButton.MouseLeave:Connect(function() tween(optionButton, TWEEN_FAST, { BackgroundTransparency = 1 }) end)
 			optionButton.MouseButton1Click:Connect(function()
 				if multi then
 					local copy = table.clone(selected)
@@ -287,7 +351,7 @@ local function buildDropdown(Window, parent, opts, compact)
 				end
 			end)
 		end
-		paintOptions()
+		paintOptions(false)
 		updateText()
 		if open then tween(menu, TWEEN_SMOOTH, { Size = UDim2.fromOffset(menu.Size.X.Offset, menuHeight()) }) end
 	end
@@ -295,11 +359,12 @@ local function buildDropdown(Window, parent, opts, compact)
 
 	bindTheme(function()
 		button.BackgroundColor3 = Theme.Surface
+		buttonStroke.Color = Theme.Border
 		label.TextColor3 = Theme.TextPrimary
 		chevron.ImageColor3 = Theme.TextPrimary
 		menu.BackgroundColor3 = Theme.Surface
 		menuStroke.Color = Theme.Border
-		paintOptions()
+		paintOptions(false)
 	end)
 
 	button.MouseButton1Click:Connect(function()
@@ -307,10 +372,19 @@ local function buildDropdown(Window, parent, opts, compact)
 		Window:ClosePopups(popup)
 		open = true
 		menu.Visible = true
-		local width = math.max(button.AbsoluteSize.X, 110)
+		local width = math.max(button.AbsoluteSize.X / Window.Scale.Scale, 110)
 		menu.Size = UDim2.fromOffset(width, 0)
 		tween(chevron, TWEEN_SMOOTH, { Rotation = 180 })
+		tween(buttonStroke, TWEEN_FAST, { Color = Theme.TextSecondary })
 		tween(menu, TWEEN_SMOOTH, { Size = UDim2.fromOffset(width, menuHeight()) })
+		-- Stagger the options in.
+		for index, option in ipairs(list) do
+			local optionButton = buttons[option]
+			optionButton.TextTransparency = 1
+			task.delay((index - 1) * 0.025, function()
+				if optionButton.Parent then tween(optionButton, TWEEN_SMOOTH, { TextTransparency = 0 }) end
+			end)
+		end
 		follow = runService.RenderStepped:Connect(function()
 			menu.Position = UDim2.fromOffset(button.AbsolutePosition.X, button.AbsolutePosition.Y + button.AbsoluteSize.Y + 4)
 		end)
@@ -334,13 +408,23 @@ function Library:Window(options)
 	local parented = pcall(function() screenGui.Parent = (gethui and gethui()) or coreGui end)
 	if not parented then screenGui.Parent = localPlayer:WaitForChild("PlayerGui") end
 
-	-- CanvasGroup clips children to the rounded corners.
-	local mainFrame = create("CanvasGroup", { Size = UDim2.fromOffset(size.X, size.Y), Position = UDim2.new(0.5, -size.X / 2, 0.5, -size.Y / 2), BackgroundColor3 = Theme.Body, BorderSizePixel = 0, Parent = screenGui })
+	-- Root carries position, scale and the drop shadow so the CanvasGroup can fade on its own.
+	local root = create("Frame", { Size = UDim2.fromOffset(size.X, size.Y), Position = UDim2.new(0.5, -size.X / 2, 0.5, -size.Y / 2), BackgroundTransparency = 1, Parent = screenGui })
+	local rootScale = create("UIScale", { Scale = 0.9, Parent = root })
+	local shadow = create("ImageLabel", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.new(1, 70, 1, 70), BackgroundTransparency = 1, Image = "rbxassetid://1316045217", ImageColor3 = Color3.new(0, 0, 0), ImageTransparency = 1, ScaleType = Enum.ScaleType.Slice, SliceCenter = Rect.new(10, 10, 118, 118), ZIndex = 0, Parent = root })
+
+	local mainFrame = create("CanvasGroup", { Size = UDim2.fromScale(1, 1), BackgroundColor3 = Theme.Body, BorderSizePixel = 0, GroupTransparency = 1, ZIndex = 1, Parent = root })
 	corner(mainFrame, 12)
 	local frameStroke = create("UIStroke", { Color = Theme.Border, Thickness = 1, Parent = mainFrame })
 
 	local sidebar = create("Frame", { Size = UDim2.new(0, SIDEBAR_WIDTH, 1, 0), BackgroundColor3 = Theme.Sidebar, BorderSizePixel = 0, Active = true, Parent = mainFrame })
+	local sidebarGradient = create("UIGradient", { Rotation = 90, Parent = sidebar })
+	local sidebarEdge = create("Frame", { Size = UDim2.new(0, 1, 1, 0), Position = UDim2.fromScale(1, 0), AnchorPoint = Vector2.new(1, 0), BackgroundColor3 = Theme.Border, BorderSizePixel = 0, Parent = sidebar })
 	local dragStrip = create("Frame", { Size = UDim2.new(1, -SIDEBAR_WIDTH, 0, 20), Position = UDim2.fromOffset(SIDEBAR_WIDTH, 0), BackgroundTransparency = 1, Active = true, Parent = mainFrame })
+
+	-- Soft accent line along the top of the content area.
+	local topLine = create("Frame", { Size = UDim2.new(1, -SIDEBAR_WIDTH, 0, 1), Position = UDim2.fromOffset(SIDEBAR_WIDTH, 0), BackgroundColor3 = Theme.Accent, BorderSizePixel = 0, ZIndex = 5, Parent = mainFrame })
+	create("UIGradient", { Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.25, 0.55), NumberSequenceKeypoint.new(0.75, 0.55), NumberSequenceKeypoint.new(1, 1) }), Parent = topLine })
 
 	local logoHolder = create("Frame", { Size = UDim2.new(1, -24, 0, 40), Position = UDim2.fromOffset(18, 18), BackgroundTransparency = 1, Parent = sidebar })
 	local logoOffset = 0
@@ -348,17 +432,34 @@ function Library:Window(options)
 		create("ImageLabel", { Size = UDim2.fromOffset(22, 22), Position = UDim2.fromOffset(0, 9), BackgroundTransparency = 1, Image = options.Logo, Parent = logoHolder })
 		logoOffset = 30
 	end
-	local titleText = string.format("<b>%s</b> %s", options.Title or "Serpent", options.Suffix or "")
-	local logoLabel = create("TextLabel", { Size = UDim2.new(1, -logoOffset, 1, 0), Position = UDim2.fromOffset(logoOffset, 0), BackgroundTransparency = 1, RichText = true, Text = titleText, TextColor3 = Theme.TextPrimary, Font = Theme.Font, TextSize = 17, TextXAlignment = Enum.TextXAlignment.Left, Parent = logoHolder })
+	local logoLabel = create("TextLabel", { Size = UDim2.new(1, -logoOffset, 1, 0), Position = UDim2.fromOffset(logoOffset, 0), BackgroundTransparency = 1, RichText = true, Text = string.format("<b>%s</b> %s", options.Title or "Serpent", options.Suffix or ""), TextColor3 = Theme.TextPrimary, Font = Theme.Font, TextSize = 17, TextXAlignment = Enum.TextXAlignment.Left, Parent = logoHolder })
 
-	local navList = create("Frame", { Size = UDim2.new(1, -24, 1, -140), Position = UDim2.fromOffset(12, 78), BackgroundTransparency = 1, Parent = sidebar })
-	create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 4), Parent = navList })
+	-- Navigation: a sliding white pill sits under the item list.
+	local navHolder = create("Frame", { Size = UDim2.new(1, -24, 1, -150), Position = UDim2.fromOffset(12, 80), BackgroundTransparency = 1, Parent = sidebar })
+	local navPill = create("Frame", { Size = UDim2.new(1, 0, 0, NAV_ITEM_HEIGHT), BackgroundColor3 = Theme.Accent, BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 1, Parent = navHolder })
+	corner(navPill, 7)
+	local navPillGradient = create("UIGradient", { Rotation = 90, Parent = navPill })
+	local navItems = create("Frame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, ZIndex = 2, Parent = navHolder })
+	create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, NAV_ITEM_GAP), Parent = navItems })
 
-	local versionLabel = create("TextLabel", { Size = UDim2.new(1, 0, 0, 20), Position = UDim2.new(0, 0, 1, -34), BackgroundTransparency = 1, Text = options.SubTitle or "Version 1.0", TextColor3 = Theme.TextSecondary, Font = Theme.Font, TextSize = 12, Parent = sidebar })
+	-- User chip at the bottom of the sidebar.
+	local chip = create("Frame", { Size = UDim2.new(1, -24, 0, 44), Position = UDim2.new(0, 12, 1, -56), BackgroundColor3 = Theme.Surface, Parent = sidebar })
+	corner(chip, 9)
+	local chipStroke = create("UIStroke", { Color = Theme.Border, Thickness = 1, Transparency = 0.4, Parent = chip })
+	local avatar = create("ImageLabel", { Size = UDim2.fromOffset(28, 28), Position = UDim2.fromOffset(8, 8), BackgroundColor3 = Theme.Track, Parent = chip })
+	corner(avatar, 14)
+	task.spawn(function()
+		local ok, thumb = pcall(playersService.GetUserThumbnailAsync, playersService, localPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
+		if ok then avatar.Image = thumb end
+	end)
+	local chipName = create("TextLabel", { Size = UDim2.new(1, -46, 0, 16), Position = UDim2.fromOffset(42, 7), BackgroundTransparency = 1, Text = localPlayer.DisplayName, TextColor3 = Theme.TextPrimary, Font = Theme.Font, TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd, Parent = chip })
+	local chipSub = create("TextLabel", { Size = UDim2.new(1, -46, 0, 14), Position = UDim2.fromOffset(42, 22), BackgroundTransparency = 1, Text = options.SubTitle or "Version 1.0", TextColor3 = Theme.TextSecondary, Font = Theme.Font, TextSize = 10, TextXAlignment = Enum.TextXAlignment.Left, Parent = chip })
 
 	local contentArea = create("Frame", { Size = UDim2.new(1, -SIDEBAR_WIDTH, 1, 0), Position = UDim2.fromOffset(SIDEBAR_WIDTH, 0), BackgroundTransparency = 1, Parent = mainFrame })
 
 	local closeBtn = create("TextButton", { Size = UDim2.fromOffset(24, 24), Position = UDim2.new(1, -14, 0, 12), AnchorPoint = Vector2.new(1, 0), BackgroundTransparency = 1, Text = "×", TextColor3 = Theme.TextSecondary, Font = Theme.Font, TextSize = 22, ZIndex = 20, Parent = mainFrame })
+	addHover(closeBtn, function() return Theme.TextSecondary end, function() return Theme.TextPrimary end, "TextColor3")
+	addPress(closeBtn, 0.85)
 
 	local notifyHolder = create("Frame", { Size = UDim2.new(0, 280, 1, -20), Position = UDim2.new(1, -10, 0, 10), AnchorPoint = Vector2.new(1, 0), BackgroundTransparency = 1, ZIndex = 6000, Parent = screenGui })
 	create("UIListLayout", { VerticalAlignment = Enum.VerticalAlignment.Bottom, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 6), Parent = notifyHolder })
@@ -367,23 +468,38 @@ function Library:Window(options)
 		mainFrame.BackgroundColor3 = Theme.Body
 		frameStroke.Color = Theme.Border
 		sidebar.BackgroundColor3 = Theme.Sidebar
+		sidebarGradient.Color = ColorSequence.new(lighten(Theme.Sidebar, 0.02), Theme.Sidebar:Lerp(Color3.new(0, 0, 0), 0.3))
+		sidebarEdge.BackgroundColor3 = Theme.Border
+		topLine.BackgroundColor3 = Theme.Accent
 		logoLabel.TextColor3 = Theme.TextPrimary
-		versionLabel.TextColor3 = Theme.TextSecondary
+		navPill.BackgroundColor3 = Theme.Accent
+		navPillGradient.Color = ColorSequence.new(Theme.Accent, Theme.Accent:Lerp(Color3.new(0, 0, 0), 0.14))
+		chip.BackgroundColor3 = Theme.Surface
+		chipStroke.Color = Theme.Border
+		chipName.TextColor3 = Theme.TextPrimary
+		chipSub.TextColor3 = Theme.TextSecondary
 		closeBtn.TextColor3 = Theme.TextSecondary
 	end)
 
-	local Window = { ScreenGui = screenGui, Tabs = {}, CurrentTab = nil, Popups = {}, Visible = true, _notifyOrder = 0 }
+	local Window = { ScreenGui = screenGui, Scale = rootScale, Tabs = {}, CurrentTab = nil, Popups = {}, Visible = true, _notifyOrder = 0 }
 	table.insert(Library.Windows, Window)
+
+	-- Intro animation.
+	task.defer(function()
+		tween(rootScale, TWEEN_POP, { Scale = 1 })
+		tween(mainFrame, TWEEN_SLOW, { GroupTransparency = 0 })
+		tween(shadow, TWEEN_SLOW, { ImageTransparency = 0.55 })
+	end)
 
 	local function makeDraggable(handle)
 		handle.InputBegan:Connect(function(input)
 			if not isPress(input) then return end
-			local startInput, startPos = input.Position, mainFrame.Position
+			local startInput, startPos = input.Position, root.Position
 			local moveConn, endConn
 			moveConn = userInputService.InputChanged:Connect(function(move)
 				if move.UserInputType == Enum.UserInputType.MouseMovement or move.UserInputType == Enum.UserInputType.Touch then
 					local delta = move.Position - startInput
-					mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+					root.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 					Window:ClosePopups()
 				end
 			end)
@@ -402,17 +518,21 @@ function Library:Window(options)
 		end
 	end
 
-	---Show or hide the window.
+	---Show or hide the window with a scale and fade animation.
 	function Window:ToggleVisibility()
 		self.Visible = not self.Visible
 		if self.Visible then
-			mainFrame.Visible = true
+			root.Visible = true
+			tween(rootScale, TWEEN_POP, { Scale = 1 })
 			tween(mainFrame, TWEEN_SMOOTH, { GroupTransparency = 0 })
+			tween(shadow, TWEEN_SMOOTH, { ImageTransparency = 0.55 })
 		else
 			self:ClosePopups()
+			tween(rootScale, TWEEN_SMOOTH, { Scale = 0.94 })
+			tween(shadow, TWEEN_SMOOTH, { ImageTransparency = 1 })
 			local t = tween(mainFrame, TWEEN_SMOOTH, { GroupTransparency = 1 })
 			t.Completed:Once(function()
-				if not self.Visible then mainFrame.Visible = false end
+				if not self.Visible then root.Visible = false end
 			end)
 		end
 	end
@@ -425,18 +545,28 @@ function Library:Window(options)
 		if index then table.remove(Library.Windows, index) end
 	end
 
-	---Show a toast notification.
+	---Slide-in toast with a countdown bar.
 	function Window:Notify(opts)
 		opts = opts or {}
+		local duration = opts.Duration or 4
 		self._notifyOrder += 1
-		local card = create("Frame", { Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundColor3 = Theme.Sidebar, LayoutOrder = self._notifyOrder, ZIndex = 6001, Parent = notifyHolder })
+		local wrap = create("Frame", { Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1, LayoutOrder = self._notifyOrder, ZIndex = 6001, Parent = notifyHolder })
+		local card = create("Frame", { Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, Position = UDim2.fromOffset(320, 0), BackgroundColor3 = Theme.Sidebar, ClipsDescendants = true, ZIndex = 6001, Parent = wrap })
 		corner(card, 8)
 		create("UIStroke", { Color = Theme.Border, Thickness = 1, Parent = card })
 		create("UIPadding", { PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12), PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), Parent = card })
-		create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 2), Parent = card })
-		create("TextLabel", { Size = UDim2.new(1, 0, 0, 16), BackgroundTransparency = 1, Text = opts.Title or "Notification", TextColor3 = Theme.Accent, Font = Theme.Font, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, LayoutOrder = 1, ZIndex = 6002, Parent = card })
+		create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 3), Parent = card })
+		create("TextLabel", { Size = UDim2.new(1, 0, 0, 16), BackgroundTransparency = 1, Text = opts.Title or "Notification", TextColor3 = Theme.Accent, Font = Enum.Font.GothamBold, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, LayoutOrder = 1, ZIndex = 6002, Parent = card })
 		create("TextLabel", { Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1, Text = opts.Content or "", TextColor3 = Theme.TextPrimary, Font = Theme.Font, TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = true, LayoutOrder = 2, ZIndex = 6002, Parent = card })
-		task.delay(opts.Duration or 4, function() card:Destroy() end)
+		local bar = create("Frame", { Size = UDim2.new(1, 0, 0, 2), BackgroundColor3 = Theme.Accent, BorderSizePixel = 0, LayoutOrder = 3, ZIndex = 6002, Parent = card })
+		corner(bar, 1)
+		tween(card, TWEEN_POP, { Position = UDim2.fromOffset(0, 0) })
+		tween(bar, TweenInfo.new(duration, Enum.EasingStyle.Linear), { Size = UDim2.new(0, 0, 0, 2) })
+		task.delay(duration, function()
+			if not wrap.Parent then return end
+			local t = tween(card, TWEEN_SMOOTH, { Position = UDim2.fromOffset(330, 0) })
+			t.Completed:Once(function() wrap:Destroy() end)
+		end)
 	end
 
 	---Create a small pinned watermark.
@@ -475,29 +605,27 @@ function Library:Window(options)
 	function Window:Tab(tabOptions)
 		tabOptions = tabOptions or {}
 		local tabTitle = tabOptions.Title or "Tab"
+		local index = #self.Tabs + 1
 
-		local navBtn = create("TextButton", { Size = UDim2.new(1, 0, 0, 30), BackgroundColor3 = Theme.Accent, BackgroundTransparency = 1, Text = "", AutoButtonColor = false, LayoutOrder = #self.Tabs + 1, Parent = navList })
-		corner(navBtn, 7)
+		local navBtn = create("TextButton", { Size = UDim2.new(1, 0, 0, NAV_ITEM_HEIGHT), BackgroundTransparency = 1, Text = "", AutoButtonColor = false, LayoutOrder = index, Parent = navItems })
+		addPress(navBtn, 0.97)
 		local navIcon = create("ImageLabel", { Size = UDim2.fromOffset(16, 16), Position = UDim2.new(0, 10, 0.5, -8), BackgroundTransparency = 1, Image = tabOptions.Icon or Library.Icons.Placeholder, ImageColor3 = Theme.NavText, Parent = navBtn })
 		local navLabel = create("TextLabel", { Size = UDim2.new(1, -38, 1, 0), Position = UDim2.fromOffset(36, 0), BackgroundTransparency = 1, Text = tabTitle, TextColor3 = Theme.NavText, Font = Theme.Font, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, Parent = navBtn })
 
-		local page = create("ScrollingFrame", { Size = UDim2.new(1, -40, 1, -48), Position = UDim2.fromOffset(20, 28), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 3, ScrollBarImageColor3 = Theme.Track, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Visible = false, Parent = contentArea })
+		local group = create("CanvasGroup", { Size = UDim2.new(1, -40, 1, -48), Position = PAGE_POSITION, BackgroundTransparency = 1, GroupTransparency = 1, Visible = false, Parent = contentArea })
+		local page = create("ScrollingFrame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 3, ScrollBarImageColor3 = Theme.Track, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Parent = group })
 		create("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 14), Parent = page })
 
-		local Tab = { Title = tabTitle, Page = page }
+		local Tab = { Title = tabTitle, Page = page, Group = group }
 		table.insert(self.Tabs, Tab)
 
 		local function paint(animate)
 			local active = Window.CurrentTab == Tab
-			local goal = { BackgroundTransparency = active and 0 or 1 }
 			local fg = active and Theme.AccentText or Theme.NavText
-			navBtn.BackgroundColor3 = Theme.Accent
 			if animate then
-				tween(navBtn, TWEEN_FAST, goal)
 				tween(navIcon, TWEEN_FAST, { ImageColor3 = fg })
 				tween(navLabel, TWEEN_FAST, { TextColor3 = fg })
 			else
-				navBtn.BackgroundTransparency = goal.BackgroundTransparency
 				navIcon.ImageColor3 = fg
 				navLabel.TextColor3 = fg
 			end
@@ -505,17 +633,40 @@ function Library:Window(options)
 		bindTheme(function() paint(false) end)
 		Tab.Repaint = paint
 
+		navBtn.MouseEnter:Connect(function()
+			if Window.CurrentTab ~= Tab then
+				tween(navLabel, TWEEN_FAST, { TextColor3 = Theme.TextPrimary })
+				tween(navIcon, TWEEN_FAST, { ImageColor3 = Theme.TextPrimary })
+			end
+		end)
+		navBtn.MouseLeave:Connect(function()
+			if Window.CurrentTab ~= Tab then paint(true) end
+		end)
+
 		---Switch to this tab.
 		function Tab:Activate()
 			local old = Window.CurrentTab
 			if old == Tab then return end
 			Window:ClosePopups()
 			Window.CurrentTab = Tab
+
+			local target = UDim2.fromOffset(0, (index - 1) * (NAV_ITEM_HEIGHT + NAV_ITEM_GAP))
 			if old then
-				old.Page.Visible = false
+				tween(navPill, TWEEN_SMOOTH, { Position = target })
+				tween(old.Group, TWEEN_FAST, { GroupTransparency = 1, Position = PAGE_POSITION - UDim2.fromOffset(0, 8) })
+				task.delay(0.16, function()
+					if Window.CurrentTab ~= old then old.Group.Visible = false end
+				end)
 				old.Repaint(true)
+			else
+				navPill.Position = target
+				tween(navPill, TWEEN_SMOOTH, { BackgroundTransparency = 0 })
 			end
-			page.Visible = true
+
+			group.Position = PAGE_POSITION + UDim2.fromOffset(0, 12)
+			group.GroupTransparency = 1
+			group.Visible = true
+			tween(group, TWEEN_SMOOTH, { GroupTransparency = 0, Position = PAGE_POSITION })
 			paint(true)
 		end
 		navBtn.MouseButton1Click:Connect(function() Tab:Activate() end)
@@ -554,6 +705,8 @@ function Library:Window(options)
 				create("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Right, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 10), Parent = holder })
 				local colorBtn = create("TextButton", { Size = UDim2.fromOffset(20, 20), BackgroundColor3 = currentColor, Text = "", AutoButtonColor = false, LayoutOrder = 1, ZIndex = 10, Parent = holder })
 				corner(colorBtn, 5)
+				create("UIStroke", { Color = Theme.Border, Thickness = 1, Parent = colorBtn })
+				addPress(colorBtn, 0.9)
 				local hexBox = create("TextBox", { Size = UDim2.fromOffset(0, 20), AutomaticSize = Enum.AutomaticSize.X, BackgroundTransparency = 1, Text = "", TextColor3 = Theme.TextSecondary, Font = Theme.Font, TextSize = 12, ClearTextOnFocus = false, LayoutOrder = 0, ZIndex = 10, Parent = holder })
 
 				local picker = create("Frame", { BackgroundColor3 = Theme.Surface, BorderSizePixel = 0, Size = UDim2.fromOffset(220, 0), Visible = false, ClipsDescendants = true, ZIndex = 3000, Parent = screenGui })
@@ -596,12 +749,12 @@ function Library:Window(options)
 				end)
 
 				local function refresh(fire)
-					colorBtn.BackgroundColor3 = currentColor
+					tween(colorBtn, TWEEN_DRAG, { BackgroundColor3 = currentColor })
 					hexBox.Text = "#" .. currentColor:ToHex():upper()
 					colorMap.BackgroundColor3 = Color3.fromHSV(hue, 1, 1)
-					marker.Position = UDim2.fromScale(sat, 1 - val)
-					hueBar.Fill.Size = UDim2.fromScale(hue, 1)
-					alphaBar.Fill.Size = UDim2.fromScale(currentAlpha, 1)
+					tween(marker, TWEEN_DRAG, { Position = UDim2.fromScale(sat, 1 - val) })
+					tween(hueBar.Fill, TWEEN_DRAG, { Size = UDim2.fromScale(hue, 1) })
+					tween(alphaBar.Fill, TWEEN_DRAG, { Size = UDim2.fromScale(currentAlpha, 1) })
 					if fire then callback(currentColor, currentAlpha * 100) end
 				end
 
@@ -673,11 +826,17 @@ function Library:Window(options)
 				return register(props.Flag or string.format("%s/Colorpicker/%s", tabTitle, compTitle), object)
 			end
 
-			---Small gray caption.
+			---Gray caption with a line running out to the right.
 			function H:Section(title)
 				local row = newRow(18)
-				local label = create("TextLabel", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = title, TextColor3 = Theme.TextSecondary, Font = Theme.Font, TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, Parent = row })
-				bindTheme(function() label.TextColor3 = Theme.TextSecondary end)
+				create("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 10), SortOrder = Enum.SortOrder.LayoutOrder, Parent = row })
+				local label = create("TextLabel", { Size = UDim2.fromOffset(0, 18), AutomaticSize = Enum.AutomaticSize.X, BackgroundTransparency = 1, Text = title, TextColor3 = Theme.TextSecondary, Font = Theme.Font, TextSize = 12, LayoutOrder = 1, Parent = row })
+				local line = create("Frame", { Size = UDim2.new(1, -100, 0, 1), BackgroundColor3 = Theme.Border, BorderSizePixel = 0, LayoutOrder = 2, Parent = row })
+				pcall(function() create("UIFlexItem", { FlexMode = Enum.UIFlexMode.Fill, Parent = line }) end)
+				bindTheme(function()
+					label.TextColor3 = Theme.TextSecondary
+					line.BackgroundColor3 = Theme.Border
+				end)
 				return { Row = row }
 			end
 
@@ -706,14 +865,19 @@ function Library:Window(options)
 				rowTitle(row, title, 120)
 				local button = create("TextButton", { Size = UDim2.fromOffset(0, 28), Position = UDim2.fromScale(1, 0.5), AnchorPoint = Vector2.new(1, 0.5), AutomaticSize = Enum.AutomaticSize.X, BackgroundColor3 = Theme.Surface, Text = opts.Action or "Click", TextColor3 = Theme.TextPrimary, Font = Theme.Font, TextSize = 12, AutoButtonColor = false, Parent = row })
 				corner(button, 6)
+				local stroke = create("UIStroke", { Color = Theme.Border, Thickness = 1, Transparency = 0.4, Parent = button })
 				create("UIPadding", { PaddingLeft = UDim.new(0, 16), PaddingRight = UDim.new(0, 16), Parent = button })
+				addPress(button, 0.95)
+				addHover(button, function() return Theme.Surface end, function() return lighten(Theme.Surface, 0.07) end)
 				bindTheme(function()
 					button.BackgroundColor3 = Theme.Surface
 					button.TextColor3 = Theme.TextPrimary
+					stroke.Color = Theme.Border
 				end)
 				button.MouseButton1Click:Connect(function()
-					tween(button, TWEEN_FAST, { BackgroundColor3 = Theme.Track })
-					task.delay(0.15, function() tween(button, TWEEN_FAST, { BackgroundColor3 = Theme.Surface }) end)
+					button.BackgroundColor3 = Theme.Accent
+					button.TextColor3 = Theme.AccentText
+					tween(button, TWEEN_SMOOTH, { BackgroundColor3 = Theme.Surface, TextColor3 = Theme.TextPrimary })
 					callback()
 				end)
 				local object = { Row = row }
@@ -731,18 +895,28 @@ function Library:Window(options)
 				rowTitle(row, title, 150)
 				local input = create("TextBox", { Size = UDim2.fromOffset(130, 28), Position = UDim2.fromScale(1, 0.5), AnchorPoint = Vector2.new(1, 0.5), BackgroundColor3 = Theme.Surface, Text = current, PlaceholderText = opts.Placeholder or "Type here", TextColor3 = Theme.TextPrimary, PlaceholderColor3 = Theme.TextSecondary, Font = Theme.Font, TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, ClearTextOnFocus = false, ClipsDescendants = true, Parent = row })
 				corner(input, 6)
+				local stroke = create("UIStroke", { Color = Theme.Border, Thickness = 1, Transparency = 0.4, Parent = input })
 				create("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10), Parent = input })
 				bindTheme(function()
 					input.BackgroundColor3 = Theme.Surface
 					input.TextColor3 = Theme.TextPrimary
 					input.PlaceholderColor3 = Theme.TextSecondary
+					stroke.Color = Theme.Border
 				end)
 				local function setValue(value, fire)
 					current = tostring(value)
 					input.Text = current
 					if fire then callback(current) end
 				end
-				input.FocusLost:Connect(function() setValue(input.Text, true) end)
+				input.Focused:Connect(function()
+					tween(stroke, TWEEN_FAST, { Color = Theme.Accent, Transparency = 0 })
+					tween(input, TWEEN_SMOOTH, { Size = UDim2.fromOffset(160, 28) })
+				end)
+				input.FocusLost:Connect(function()
+					tween(stroke, TWEEN_FAST, { Color = Theme.Border, Transparency = 0.4 })
+					tween(input, TWEEN_SMOOTH, { Size = UDim2.fromOffset(130, 28) })
+					setValue(input.Text, true)
+				end)
 				local object = { Row = row }
 				function object:GetComponentType() return "Textbox" end
 				function object:GetValue() return current end
@@ -760,11 +934,16 @@ function Library:Window(options)
 				rowTitle(row, title, 120)
 				local keyBtn = create("TextButton", { Size = UDim2.fromOffset(0, 26), Position = UDim2.fromScale(1, 0.5), AnchorPoint = Vector2.new(1, 0.5), AutomaticSize = Enum.AutomaticSize.X, BackgroundColor3 = Theme.Surface, Text = formatKeyName(currentKey), TextColor3 = Theme.TextPrimary, Font = Theme.Font, TextSize = 12, AutoButtonColor = false, Parent = row })
 				corner(keyBtn, 6)
+				local stroke = create("UIStroke", { Color = Theme.Border, Thickness = 1, Transparency = 0.4, Parent = keyBtn })
 				create("UIPadding", { PaddingLeft = UDim.new(0, 14), PaddingRight = UDim.new(0, 14), Parent = keyBtn })
+				addPress(keyBtn, 0.95)
+				addHover(keyBtn, function() return Theme.Surface end, function() return lighten(Theme.Surface, 0.07) end)
 
 				local function paint()
 					keyBtn.BackgroundColor3 = Theme.Surface
 					keyBtn.TextColor3 = binding and Theme.Accent or Theme.TextPrimary
+					stroke.Color = binding and Theme.Accent or Theme.Border
+					stroke.Transparency = binding and 0 or 0.4
 				end
 				bindTheme(paint)
 
@@ -810,9 +989,13 @@ function Library:Window(options)
 				local title = opts.Title or "Toggle"
 				local callback = opts.Callback or function() end
 				local row = newRow(30)
-				rowTitle(row, title, 60)
+				local label = rowTitle(row, title, 60)
 				local holder = create("Frame", { Size = UDim2.fromOffset(20, 20), Position = UDim2.fromScale(1, 0.5), AnchorPoint = Vector2.new(1, 0.5), BackgroundTransparency = 1, ZIndex = 6, Parent = row })
-				local check = makeCheck(holder, opts.Default, callback)
+				local check = makeCheck(holder, opts.Default, function(state)
+					tween(label, TWEEN_FAST, { TextColor3 = state and Theme.TextPrimary or Theme.NavText })
+					callback(state)
+				end)
+				label.TextColor3 = check.Get() and Theme.TextPrimary or Theme.NavText
 				local clickLayer = create("TextButton", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = "", ZIndex = 5, Parent = row })
 				clickLayer.MouseButton1Click:Connect(function() check.Set(not check.Get(), true) end)
 
@@ -852,20 +1035,26 @@ function Library:Window(options)
 					local gear
 					if Library.Icons.Gear then
 						gear = create("ImageButton", { Size = UDim2.fromOffset(16, 16), Position = UDim2.fromScale(1, 0), AnchorPoint = Vector2.new(1, 0), BackgroundTransparency = 1, Image = Library.Icons.Gear, ImageColor3 = Theme.TextSecondary, Parent = row })
+						gear.MouseEnter:Connect(function() tween(gear, TWEEN_SMOOTH, { Rotation = 90, ImageColor3 = Theme.TextPrimary }) end)
+						gear.MouseLeave:Connect(function() tween(gear, TWEEN_SMOOTH, { Rotation = 0, ImageColor3 = Theme.TextSecondary }) end)
 					else
 						gear = create("TextButton", { Size = UDim2.fromOffset(16, 16), Position = UDim2.fromScale(1, 0), AnchorPoint = Vector2.new(1, 0), BackgroundTransparency = 1, Text = "⚙", TextColor3 = Theme.TextSecondary, TextSize = 15, Font = Theme.Font, Parent = row })
+						gear.MouseEnter:Connect(function() tween(gear, TWEEN_SMOOTH, { Rotation = 90, TextColor3 = Theme.TextPrimary }) end)
+						gear.MouseLeave:Connect(function() tween(gear, TWEEN_SMOOTH, { Rotation = 0, TextColor3 = Theme.TextSecondary }) end)
 					end
 					gear.MouseButton1Click:Connect(opts.Settings)
 				end
 
 				local reserve = opts.Checkbox and 32 or 0
-				local track = create("Frame", { Size = UDim2.new(1, -reserve, 0, 3), Position = UDim2.fromOffset(0, 32), BackgroundColor3 = Theme.Track, BorderSizePixel = 0, Parent = row })
-				corner(track, 2)
+				local track = create("Frame", { Size = UDim2.new(1, -reserve, 0, 3), AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.fromOffset(0, 33), BackgroundColor3 = Theme.Track, BorderSizePixel = 0, Parent = row })
+				corner(track, 3)
 				local fill = create("Frame", { Size = UDim2.fromScale(0, 1), BackgroundColor3 = Theme.Accent, BorderSizePixel = 0, Parent = track })
-				corner(fill, 2)
-				local pill = create("TextLabel", { Size = UDim2.fromOffset(0, 18), AutomaticSize = Enum.AutomaticSize.X, AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.fromScale(0, 0.5), BackgroundColor3 = Theme.Accent, Text = "", TextColor3 = Theme.AccentText, Font = Theme.Font, TextSize = 11, ZIndex = 3, Parent = track })
+				corner(fill, 3)
+				local fillGradient = create("UIGradient", { Parent = fill })
+				local pill = create("TextLabel", { Size = UDim2.fromOffset(0, 18), AutomaticSize = Enum.AutomaticSize.X, AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.fromScale(0, 0.5), BackgroundColor3 = Theme.Accent, Text = "", TextColor3 = Theme.AccentText, Font = Enum.Font.GothamBold, TextSize = 11, ZIndex = 3, Parent = track })
 				corner(pill, 9)
 				create("UIPadding", { PaddingLeft = UDim.new(0, 9), PaddingRight = UDim.new(0, 9), Parent = pill })
+				local pillScale = create("UIScale", { Parent = pill })
 				local hit = create("TextButton", { Size = UDim2.new(1, -reserve, 0, 22), Position = UDim2.fromOffset(0, 22), BackgroundTransparency = 1, Text = "", AutoButtonColor = false, Parent = row })
 
 				local check
@@ -878,6 +1067,7 @@ function Library:Window(options)
 					titleLabel.TextColor3 = Theme.TextSecondary
 					track.BackgroundColor3 = Theme.Track
 					fill.BackgroundColor3 = Theme.Accent
+					fillGradient.Color = ColorSequence.new(Theme.Accent:Lerp(Color3.new(0, 0, 0), 0.18), Theme.Accent)
 					pill.BackgroundColor3 = Theme.Accent
 					pill.TextColor3 = Theme.AccentText
 				end)
@@ -885,21 +1075,19 @@ function Library:Window(options)
 				local function fmt(value)
 					return string.format("%s%." .. decimal .. "f%s", prefix, value, suffix)
 				end
-				local function visuals()
+				local function visuals(animate)
+					local info = animate and TWEEN_DRAG or TweenInfo.new(0)
 					if dual then
 						local a1, a2 = (current[1] - min) / (max - min), (current[2] - min) / (max - min)
 						local center = (a1 + a2) / 2
-						fill.Position = UDim2.fromScale(a1, 0)
-						fill.Size = UDim2.fromScale(a2 - a1, 1)
+						tween(fill, info, { Position = UDim2.fromScale(a1, 0), Size = UDim2.fromScale(a2 - a1, 1) })
 						pill.Text = fmt(current[1]) .. " - " .. fmt(current[2])
-						pill.AnchorPoint = Vector2.new(center, 0.5)
-						pill.Position = UDim2.fromScale(center, 0.5)
+						tween(pill, info, { AnchorPoint = Vector2.new(center, 0.5), Position = UDim2.fromScale(center, 0.5) })
 					else
 						local a = (current - min) / (max - min)
-						fill.Size = UDim2.fromScale(a, 1)
+						tween(fill, info, { Size = UDim2.fromScale(a, 1) })
 						pill.Text = fmt(current)
-						pill.AnchorPoint = Vector2.new(a, 0.5)
-						pill.Position = UDim2.fromScale(a, 0.5)
+						tween(pill, info, { AnchorPoint = Vector2.new(a, 0.5), Position = UDim2.fromScale(a, 0.5) })
 					end
 				end
 
@@ -910,9 +1098,18 @@ function Library:Window(options)
 					else
 						current = math.clamp(value, min, max)
 					end
-					visuals()
+					visuals(true)
 					if fire then callback(current) end
 				end
+
+				local dragging, hovering = false, false
+				local function refreshTrack()
+					local active = dragging or hovering
+					tween(track, TWEEN_FAST, { Size = UDim2.new(1, -reserve, 0, active and 5 or 3) })
+					tween(titleLabel, TWEEN_FAST, { TextColor3 = active and Theme.TextPrimary or Theme.TextSecondary })
+				end
+				hit.MouseEnter:Connect(function() hovering = true refreshTrack() end)
+				hit.MouseLeave:Connect(function() hovering = false refreshTrack() end)
 
 				local activeHandle = 1
 				local function fromInput(input)
@@ -938,17 +1135,26 @@ function Library:Window(options)
 						local d1, d2 = math.abs(alpha - a1), math.abs(alpha - a2)
 						activeHandle = (d1 == d2 and (alpha > a1 and 2 or 1)) or (d1 < d2 and 1 or 2)
 					end
+					dragging = true
+					refreshTrack()
+					tween(pillScale, TWEEN_POP, { Scale = 1.14 })
 					fromInput(input)
 					local moveConn, endConn
 					moveConn = userInputService.InputChanged:Connect(function(move)
 						if move.UserInputType == Enum.UserInputType.MouseMovement or move.UserInputType == Enum.UserInputType.Touch then fromInput(move) end
 					end)
 					endConn = userInputService.InputEnded:Connect(function(finish)
-						if isPress(finish) then moveConn:Disconnect() endConn:Disconnect() end
+						if isPress(finish) then
+							moveConn:Disconnect()
+							endConn:Disconnect()
+							dragging = false
+							refreshTrack()
+							tween(pillScale, TWEEN_SMOOTH, { Scale = 1 })
+						end
 					end)
 				end)
 
-				visuals()
+				visuals(false)
 				local object = { Row = row }
 				function object:GetComponentType() return "Slider" end
 				function object:GetValue() return current end
@@ -977,32 +1183,44 @@ function Library:Window(options)
 				local holder = create("Frame", { Size = UDim2.new(1, opts.Checkbox and -34 or 0, 1, 0), BackgroundTransparency = 1, Parent = row })
 				create("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder, Parent = holder })
 
-				local pills = {}
-				local function paint()
+				local pills, scales = {}, {}
+				local function paint(animate)
 					for name, pill in pairs(pills) do
 						local active = name == current
-						pill.BackgroundTransparency = active and 0 or 1
-						pill.BackgroundColor3 = Theme.Accent
-						pill.TextColor3 = active and Theme.AccentText or Theme.TextSecondary
+						local goal = { BackgroundTransparency = active and 0 or 1, TextColor3 = active and Theme.AccentText or Theme.TextSecondary, BackgroundColor3 = Theme.Accent }
+						if animate then
+							tween(pill, TWEEN_SMOOTH, goal)
+						else
+							for key, value in pairs(goal) do pill[key] = value end
+						end
 					end
 				end
-				bindTheme(paint)
+				bindTheme(function() paint(false) end)
 
 				local function setValue(value, fire)
 					if not pills[value] then return end
 					current = value
-					paint()
+					paint(true)
+					scales[value].Scale = 0.88
+					tween(scales[value], TWEEN_POP, { Scale = 1 })
 					if fire then callback(current) end
 				end
 
-				for index, name in ipairs(options) do
-					local pill = create("TextButton", { Size = UDim2.fromOffset(0, 28), AutomaticSize = Enum.AutomaticSize.X, Text = name, Font = Theme.Font, TextSize = 12, AutoButtonColor = false, LayoutOrder = index, BackgroundColor3 = Theme.Accent, Parent = holder })
+				for order, name in ipairs(options) do
+					local pill = create("TextButton", { Size = UDim2.fromOffset(0, 28), AutomaticSize = Enum.AutomaticSize.X, Text = name, Font = Theme.Font, TextSize = 12, AutoButtonColor = false, LayoutOrder = order, BackgroundColor3 = Theme.Accent, Parent = holder })
 					corner(pill, 14)
 					create("UIPadding", { PaddingLeft = UDim.new(0, 14), PaddingRight = UDim.new(0, 14), Parent = pill })
 					pills[name] = pill
+					scales[name] = addPress(pill, 0.94)
+					pill.MouseEnter:Connect(function()
+						if name ~= current then tween(pill, TWEEN_FAST, { TextColor3 = Theme.TextPrimary }) end
+					end)
+					pill.MouseLeave:Connect(function()
+						if name ~= current then tween(pill, TWEEN_FAST, { TextColor3 = Theme.TextSecondary }) end
+					end)
 					pill.MouseButton1Click:Connect(function() setValue(name, true) end)
 				end
-				paint()
+				paint(false)
 
 				local check
 				if opts.Checkbox then
@@ -1038,6 +1256,8 @@ function Library:Window(options)
 
 				local panel = create("Frame", { Size = UDim2.fromOffset(128, 190), BackgroundColor3 = Theme.Surface, LayoutOrder = 2, Parent = row })
 				corner(panel, 8)
+				local panelStroke = create("UIStroke", { Color = Theme.Border, Thickness = 1, Transparency = 0.4, Parent = panel })
+				create("UIGradient", { Rotation = 90, Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(1, 0.25) }), Parent = panel })
 
 				local shapes = {
 					Head = { { 51, 24, 26, 26, 13 } },
@@ -1046,25 +1266,48 @@ function Library:Window(options)
 					Arms = { { 26, 58, 12, 56, 6 }, { 90, 58, 12, 56, 6 } },
 					Legs = { { 43, 118, 20, 64, 6 }, { 65, 118, 20, 64, 6 } },
 				}
-				local base, hover = Color3.fromRGB(95, 95, 95), Color3.fromRGB(135, 135, 135)
+				local base, lit = Color3.fromRGB(88, 88, 96), Color3.fromRGB(150, 150, 160)
 
+				local ring = create("Frame", { Size = UDim2.fromOffset(8, 8), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundTransparency = 1, ZIndex = 4, Parent = panel })
+				corner(ring, 20)
+				local ringStroke = create("UIStroke", { Color = Theme.Accent, Thickness = 2, Transparency = 1, Parent = ring })
 				local dot = create("Frame", { Size = UDim2.fromOffset(8, 8), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundColor3 = Theme.Accent, ZIndex = 5, Parent = panel })
 				corner(dot, 4)
 
-				local frames = {}
+				local pieces = {}
+				local function paintPieces()
+					for part, list in pairs(pieces) do
+						for _, piece in ipairs(list) do
+							tween(piece, TWEEN_SMOOTH, { BackgroundColor3 = part == current and lit or base })
+						end
+					end
+				end
+
 				function moveDot(part, index)
 					local spec = shapes[part] and shapes[part][index or 1]
 					if not spec then return end
-					tween(dot, TWEEN_FAST, { Position = UDim2.fromOffset(spec[1] + spec[3] / 2, spec[2] + spec[4] / 2) })
+					local target = UDim2.fromOffset(spec[1] + spec[3] / 2, spec[2] + spec[4] / 2)
+					tween(dot, TWEEN_SMOOTH, { Position = target })
+					ring.Position = target
+					ring.Size = UDim2.fromOffset(8, 8)
+					ringStroke.Transparency = 0.1
+					tween(ring, TWEEN_SLOW, { Size = UDim2.fromOffset(34, 34) })
+					tween(ringStroke, TWEEN_SLOW, { Transparency = 1 })
+					paintPieces()
 				end
 
 				for _, part in ipairs(parts) do
+					pieces[part] = {}
 					for index, spec in ipairs(shapes[part] or {}) do
-						local piece = create("TextButton", { Position = UDim2.fromOffset(spec[1], spec[2]), Size = UDim2.fromOffset(spec[3], spec[4]), BackgroundColor3 = base, Text = "", AutoButtonColor = false, Parent = panel })
+						local piece = create("TextButton", { Position = UDim2.fromOffset(spec[1], spec[2]), Size = UDim2.fromOffset(spec[3], spec[4]), BackgroundColor3 = part == current and lit or base, Text = "", AutoButtonColor = false, Parent = panel })
 						corner(piece, spec[5])
-						table.insert(frames, piece)
-						piece.MouseEnter:Connect(function() tween(piece, TWEEN_FAST, { BackgroundColor3 = hover }) end)
-						piece.MouseLeave:Connect(function() tween(piece, TWEEN_FAST, { BackgroundColor3 = base }) end)
+						table.insert(pieces[part], piece)
+						piece.MouseEnter:Connect(function()
+							if part ~= current then tween(piece, TWEEN_FAST, { BackgroundColor3 = lighten(base, 0.18) }) end
+						end)
+						piece.MouseLeave:Connect(function()
+							if part ~= current then tween(piece, TWEEN_FAST, { BackgroundColor3 = base }) end
+						end)
 						piece.MouseButton1Click:Connect(function()
 							drop:SetValue(part)
 							moveDot(part, index)
@@ -1074,9 +1317,14 @@ function Library:Window(options)
 
 				bindTheme(function()
 					panel.BackgroundColor3 = Theme.Surface
+					panelStroke.Color = Theme.Border
 					dot.BackgroundColor3 = Theme.Accent
+					ringStroke.Color = Theme.Accent
 				end)
-				task.defer(function() moveDot(current, 1) end)
+				task.defer(function()
+					local spec = shapes[current] and shapes[current][1]
+					if spec then dot.Position = UDim2.fromOffset(spec[1] + spec[3] / 2, spec[2] + spec[4] / 2) end
+				end)
 
 				local object = { Row = row }
 				function object:GetComponentType() return "BodySelector" end
