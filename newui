@@ -1,0 +1,2185 @@
+---@module Evenesce
+
+-- Use cloneref on services when the executor provides it.
+local cloneRef = cloneref or function(instance)
+	return instance
+end
+
+-- Services.
+local coreGui = cloneRef(game:GetService("CoreGui"))
+local guiService = cloneRef(game:GetService("GuiService"))
+local marketplaceService = cloneRef(game:GetService("MarketplaceService"))
+local playersService = cloneRef(game:GetService("Players"))
+local runService = cloneRef(game:GetService("RunService"))
+local statsService = cloneRef(game:GetService("Stats"))
+local tweenService = cloneRef(game:GetService("TweenService"))
+local userInputService = cloneRef(game:GetService("UserInputService"))
+
+-- Constants.
+local LUCIDE_URL = "https://raw.githubusercontent.com/mstudio45/lucide-roblox-direct/refs/heads/main/source.lua"
+local DESIGN_WIDTH = 1907
+local DESIGN_HEIGHT = 1086
+local WINDOW_X = 232
+local WINDOW_Y = 136
+local WINDOW_WIDTH = 1444
+local WINDOW_HEIGHT = 903
+local SIDEBAR_WIDTH = 379
+local PAGE_TOP = 168
+local COLUMN_WIDTH = 494
+local ROW_PADDING = 27
+local FONT_MEDIUM = Enum.Font.GothamMedium
+local FONT_BOLD = Enum.Font.GothamBold
+
+-- Theme.
+local Theme = {
+	windowBackground = Color3.fromHex("#0f0f11"),
+	watermarkBackground = Color3.fromHex("#0e0e10"),
+	cardBackground = Color3.fromHex("#151518"),
+	elementBackground = Color3.fromHex("#1c1c20"),
+	searchBackground = Color3.fromHex("#18181c"),
+	popupBackground = Color3.fromHex("#17171b"),
+	divider = Color3.fromHex("#212125"),
+	border = Color3.fromHex("#232328"),
+	accent = Color3.fromHex("#7a6ff0"),
+	accentLight = Color3.fromHex("#9d93ff"),
+	textPrimary = Color3.fromHex("#f4f4f6"),
+	textMuted = Color3.fromHex("#8c8c96"),
+	textDim = Color3.fromHex("#5a5a63"),
+	checkboxOff = Color3.fromHex("#25252a"),
+	track = Color3.fromHex("#1f1f25"),
+}
+
+-- Module tables.
+local Evenesce = {}
+Evenesce.__index = Evenesce
+Evenesce.Theme = Theme
+Evenesce.Flags = {}
+
+local Window = {}
+Window.__index = Window
+
+local Tab = {}
+Tab.__index = Tab
+
+local Page = {}
+Page.__index = Page
+
+local Section = {}
+Section.__index = Section
+
+-- State.
+local lucide = nil
+
+---Load the Lucide icon spritesheet module once per executor session.
+---@return table?
+local function getLucide()
+	if lucide then
+		return lucide
+	end
+
+	local environment = getgenv and getgenv() or _G
+	if environment.EvenesceLucide then
+		lucide = environment.EvenesceLucide
+		return lucide
+	end
+
+	local success, result = pcall(function()
+		local response = request({ Url = LUCIDE_URL, Method = "GET" })
+		return loadstring(response.Body)()
+	end)
+
+	if not success or type(result) ~= "table" then
+		warn("Evenesce: failed to load Lucide icons.")
+		return nil
+	end
+
+	lucide = result
+	environment.EvenesceLucide = result
+	return lucide
+end
+
+---Create an instance with library defaults applied before the caller's properties.
+---@param className string
+---@param properties table?
+---@param parent Instance?
+---@return Instance
+local function create(className, properties, parent)
+	local instance = Instance.new(className)
+
+	if instance:IsA("GuiObject") then
+		instance.BorderSizePixel = 0
+	end
+
+	if instance:IsA("TextLabel") or instance:IsA("TextButton") or instance:IsA("TextBox") then
+		instance.BackgroundTransparency = 1
+		instance.Font = FONT_MEDIUM
+		instance.Text = ""
+		instance.TextColor3 = Theme.textPrimary
+		instance.TextSize = 19
+	end
+
+	if instance:IsA("TextButton") or instance:IsA("ImageButton") then
+		instance.AutoButtonColor = false
+	end
+
+	if instance:IsA("ImageLabel") or instance:IsA("ImageButton") then
+		instance.BackgroundTransparency = 1
+	end
+
+	if properties then
+		for key, value in pairs(properties) do
+			instance[key] = value
+		end
+	end
+
+	instance.Parent = parent
+	return instance
+end
+
+---Round the corners of a gui object.
+---@param instance Instance
+---@param radius number
+local function round(instance, radius)
+	return create("UICorner", { CornerRadius = UDim.new(0, radius) }, instance)
+end
+
+---Add a border stroke to a gui object.
+---@param instance Instance
+---@param color Color3
+---@param transparency number?
+local function outline(instance, color, transparency)
+	return create("UIStroke", {
+		Color = color,
+		Thickness = 1,
+		Transparency = transparency or 0,
+		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+	}, instance)
+end
+
+---Play a short tween on an instance.
+---@param instance Instance
+---@param duration number
+---@param properties table
+local function tween(instance, duration, properties)
+	local playing = tweenService:Create(
+		instance,
+		TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+		properties
+	)
+	playing:Play()
+	return playing
+end
+
+---Point an image at a Lucide icon sprite.
+---@param image ImageLabel
+---@param name string
+local function setIcon(image, name)
+	local library = getLucide()
+	local asset = library and library.GetAsset(name)
+	if not asset then
+		image.Image = ""
+		return
+	end
+
+	image.Image = asset.Url
+	image.ImageRectSize = asset.ImageRectSize
+	image.ImageRectOffset = asset.ImageRectOffset
+end
+
+---Create a tinted Lucide icon.
+---@param parent Instance
+---@param name string
+---@param size number
+---@param color Color3
+---@param className string?
+---@param properties table?
+---@return ImageLabel
+local function createIcon(parent, name, size, color, className, properties)
+	local icon = create(className or "ImageLabel", {
+		Name = "Icon",
+		Size = UDim2.fromOffset(size, size),
+		ImageColor3 = color,
+	})
+
+	if properties then
+		for key, value in pairs(properties) do
+			icon[key] = value
+		end
+	end
+
+	setIcon(icon, name)
+	icon.Parent = parent
+	return icon
+end
+
+---Tint an icon button on hover.
+---@param button GuiButton
+---@param target ImageLabel
+---@param normal Color3
+---@param hover Color3
+local function bindHoverTint(button, target, normal, hover)
+	button.MouseEnter:Connect(function()
+		tween(target, 0.12, { ImageColor3 = hover })
+	end)
+	button.MouseLeave:Connect(function()
+		tween(target, 0.12, { ImageColor3 = normal })
+	end)
+end
+
+---Fade a button background on hover.
+---@param button GuiButton
+---@param normal Color3
+---@param hover Color3
+local function bindHoverFill(button, normal, hover)
+	button.MouseEnter:Connect(function()
+		tween(button, 0.12, { BackgroundColor3 = hover })
+	end)
+	button.MouseLeave:Connect(function()
+		tween(button, 0.12, { BackgroundColor3 = normal })
+	end)
+end
+
+---Convert an input position into full-screen coordinates matching AbsolutePosition.
+---@param position Vector3
+---@return Vector2
+local function pointerPosition(position)
+	local inset = guiService:GetGuiInset()
+	return Vector2.new(position.X, position.Y + inset.Y)
+end
+
+---Check whether an input should start a press interaction.
+---@param input InputObject
+---@return boolean
+local function isPress(input)
+	return input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch
+end
+
+---Follow the pointer until the press that started the drag is released.
+---@param input InputObject
+---@param onMove function
+local function trackDrag(input, onMove)
+	local moveConnection
+	local endConnection
+
+	moveConnection = userInputService.InputChanged:Connect(function(changed)
+		if
+			changed.UserInputType == Enum.UserInputType.MouseMovement
+			or changed.UserInputType == Enum.UserInputType.Touch
+		then
+			onMove(changed.Position)
+		end
+	end)
+
+	endConnection = userInputService.InputEnded:Connect(function(ended)
+		if ended == input or (ended.UserInputType == Enum.UserInputType.MouseButton1 and input.UserInputType == Enum.UserInputType.MouseButton1) then
+			moveConnection:Disconnect()
+			endConnection:Disconnect()
+		end
+	end)
+end
+
+---Run a callback without letting its errors stop the library.
+---@param callback function?
+local function fire(callback, ...)
+	if callback then
+		task.spawn(callback, ...)
+	end
+end
+
+---Count the decimals of a slider increment.
+---@param increment number
+---@return number
+local function getDecimals(increment)
+	local fraction = string.match(tostring(increment), "%.(%d+)")
+	return fraction and #fraction or 0
+end
+
+---Format a number with a fixed amount of decimals.
+---@param value number
+---@param decimals number
+---@return string
+local function formatNumber(value, decimals)
+	if decimals <= 0 then
+		return tostring(math.floor(value + 0.5))
+	end
+	return string.format("%." .. decimals .. "f", value)
+end
+
+---Snap a value to an increment and clamp it into range.
+---@param value number
+---@param minimum number
+---@param maximum number
+---@param increment number
+---@param decimals number
+---@return number
+local function snap(value, minimum, maximum, increment, decimals)
+	local snapped = math.floor((value - minimum) / increment + 0.5) * increment + minimum
+	snapped = math.clamp(snapped, minimum, maximum)
+	return tonumber(string.format("%." .. decimals .. "f", snapped)) or snapped
+end
+
+---Build the two-bar logo mark.
+---@param parent Instance
+---@param size number
+---@param position UDim2
+---@return Frame
+local function createLogo(parent, size, position)
+	local holder = create("Frame", {
+		Name = "Logo",
+		Position = position,
+		Size = UDim2.fromOffset(size, size),
+		BackgroundTransparency = 1,
+	}, parent)
+
+	local unit = size / 36
+	local function bar(centerX, centerY, color)
+		local part = create("Frame", {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromOffset(centerX * unit, centerY * unit),
+			Size = UDim2.fromOffset(30 * unit, 13 * unit),
+			Rotation = -24,
+			BackgroundColor3 = color,
+		}, holder)
+		round(part, math.max(2, math.floor(6 * unit)))
+	end
+
+	bar(20, 11, Theme.accentLight)
+	bar(16, 25, Theme.accent)
+	return holder
+end
+
+---Create the protected ScreenGui.
+---@return ScreenGui
+local function createScreenGui()
+	local gui = create("ScreenGui", {
+		Name = string.format("%x", math.random(0x10000000, 0x7fffffff)),
+		ResetOnSpawn = false,
+		IgnoreGuiInset = true,
+		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+		DisplayOrder = 999,
+	})
+
+	local container = gethui and gethui() or coreGui
+	local success = pcall(function()
+		gui.Parent = container
+	end)
+
+	if not success then
+		gui.Parent = playersService.LocalPlayer:WaitForChild("PlayerGui")
+	end
+
+	return gui
+end
+
+--------------------------------------------------------------------------------
+-- Section
+--------------------------------------------------------------------------------
+
+---Create a section card inside a page column.
+---@param page table
+---@param options table
+---@return table
+function Section.new(page, options)
+	local self = setmetatable({}, Section)
+	self.page = page
+	self.window = page.window
+	self.name = options.Name or "Section"
+	self.items = {}
+	self.rowOrder = 0
+	self.lastRow = nil
+
+	local column = options.Side == "Right" and page.rightColumn or page.leftColumn
+
+	self.holder = create("Frame", {
+		Name = self.name .. "Section",
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundTransparency = 1,
+		LayoutOrder = #page.sections + 1,
+	}, column)
+
+	create("UIListLayout", {
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		Padding = UDim.new(0, 0),
+	}, self.holder)
+
+	local header = create("TextLabel", {
+		Name = "Header",
+		Size = UDim2.new(1, 0, 0, 42),
+		Text = self.name,
+		Font = FONT_MEDIUM,
+		TextSize = 23,
+		TextColor3 = Theme.textMuted,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextYAlignment = Enum.TextYAlignment.Top,
+		LayoutOrder = 1,
+	}, self.holder)
+	create("UIPadding", { PaddingLeft = UDim.new(0, 3), PaddingTop = UDim.new(0, 2) }, header)
+
+	self.card = create("Frame", {
+		Name = "Card",
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundColor3 = Theme.cardBackground,
+		LayoutOrder = 2,
+	}, self.holder)
+	round(self.card, 18)
+
+	create("UIListLayout", {
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		Padding = UDim.new(0, 0),
+	}, self.card)
+
+	return self
+end
+
+---Create a divided row inside the card.
+---@param height number
+---@param name string?
+---@param noDivider boolean?
+---@return Frame
+function Section:createRow(height, name, noDivider)
+	self.rowOrder = self.rowOrder + 1
+
+	local row = create("Frame", {
+		Name = (name or "Row") .. "Row",
+		Size = UDim2.new(1, 0, 0, height),
+		BackgroundTransparency = 1,
+		LayoutOrder = self.rowOrder,
+	}, self.card)
+
+	local divider = create("Frame", {
+		Name = "Divider",
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.new(0, ROW_PADDING, 1, 0),
+		Size = UDim2.new(1, -(ROW_PADDING * 2 + 1), 0, 1),
+		BackgroundColor3 = Theme.divider,
+		Visible = false,
+	}, row)
+
+	if self.lastRow and not self.lastRow.noDivider then
+		self.lastRow.divider.Visible = true
+	end
+
+	self.lastRow = { row = row, divider = divider, noDivider = noDivider == true }
+	table.insert(self.items, { row = row, name = name or "" })
+
+	return row
+end
+
+---Create a muted row label.
+---@param row Frame
+---@param text string
+---@param centerY number
+---@param color Color3?
+---@return TextLabel
+function Section:createLabel(row, text, centerY, color)
+	return create("TextLabel", {
+		Name = "Label",
+		AnchorPoint = Vector2.new(0, 0.5),
+		Position = UDim2.fromOffset(ROW_PADDING, centerY),
+		Size = UDim2.new(0.62, 0, 0, 24),
+		Text = text,
+		Font = FONT_MEDIUM,
+		TextSize = 19,
+		TextColor3 = color or Theme.textMuted,
+		TextXAlignment = Enum.TextXAlignment.Left,
+	}, row)
+end
+
+---Create a right aligned value label.
+---@param row Frame
+---@param centerY number
+---@return TextLabel
+function Section:createValueLabel(row, centerY)
+	return create("TextLabel", {
+		Name = "Value",
+		AnchorPoint = Vector2.new(1, 0.5),
+		Position = UDim2.new(1, -(ROW_PADDING + 1), 0, centerY),
+		Size = UDim2.new(0.38, 0, 0, 24),
+		Font = FONT_BOLD,
+		TextSize = 19,
+		TextColor3 = Theme.textPrimary,
+		TextXAlignment = Enum.TextXAlignment.Right,
+	}, row)
+end
+
+---Add a checkbox row with optional arrow and settings icons.
+---@param options table
+---@return table
+function Section:addToggle(options)
+	local row = self:createRow(67, options.Name)
+	local flag = options.Flag or options.Name
+	local callback = options.Callback
+	local value = options.Default == true
+
+	local hit = create("TextButton", {
+		Name = "Hit",
+		Size = UDim2.new(1, 0, 1, -1),
+	}, row)
+
+	local checkbox = create("Frame", {
+		Name = "Checkbox",
+		AnchorPoint = Vector2.new(0, 0.5),
+		Position = UDim2.new(0, ROW_PADDING, 0, 33),
+		Size = UDim2.fromOffset(31, 31),
+		BackgroundColor3 = value and Theme.accent or Theme.checkboxOff,
+	}, row)
+	round(checkbox, 8)
+
+	local check = createIcon(checkbox, "check", 21, Theme.textPrimary, "ImageLabel", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		ImageTransparency = value and 0 or 1,
+	})
+
+	local label = create("TextLabel", {
+		Name = "Label",
+		Position = UDim2.fromOffset(75, 0),
+		Size = UDim2.new(1, -170, 0, 66),
+		Text = options.Name,
+		Font = FONT_MEDIUM,
+		TextSize = 19,
+		TextColor3 = value and Theme.textPrimary or Theme.textDim,
+		TextXAlignment = Enum.TextXAlignment.Left,
+	}, row)
+
+	local control = {}
+
+	---@param newValue boolean
+	---@param silent boolean?
+	local function apply(newValue, silent)
+		value = newValue
+		Evenesce.Flags[flag] = value
+		tween(checkbox, 0.15, { BackgroundColor3 = value and Theme.accent or Theme.checkboxOff })
+		tween(check, 0.15, { ImageTransparency = value and 0 or 1 })
+		tween(label, 0.15, { TextColor3 = value and Theme.textPrimary or Theme.textDim })
+		if not silent then
+			fire(callback, value)
+		end
+	end
+
+	Evenesce.Flags[flag] = value
+	hit.Activated:Connect(function()
+		apply(not value)
+	end)
+
+	if options.Gear then
+		local gear = createIcon(row, "settings", 24, Theme.textMuted, "ImageButton", {
+			Name = "Gear",
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.new(1, -40, 0, 33),
+		})
+		bindHoverTint(gear, gear, Theme.textMuted, Theme.textPrimary)
+		gear.Activated:Connect(function()
+			fire(options.OnGear, value)
+		end)
+	end
+
+	if options.Arrow then
+		local arrow = createIcon(row, "chevron-right", 24, Theme.textMuted, "ImageButton", {
+			Name = "Arrow",
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.new(1, -78, 0, 33),
+		})
+		bindHoverTint(arrow, arrow, Theme.textMuted, Theme.textPrimary)
+		arrow.Activated:Connect(function()
+			fire(options.OnArrow, value)
+		end)
+	end
+
+	function control.set(_, newValue)
+		apply(newValue == true, false)
+	end
+
+	function control.get()
+		return value
+	end
+
+	return control
+end
+
+---Add a single handle slider row.
+---@param options table
+---@return table
+function Section:addSlider(options)
+	local row = self:createRow(86, options.Name)
+	local flag = options.Flag or options.Name
+	local callback = options.Callback
+	local minimum = options.Min or 0
+	local maximum = options.Max or 100
+	local increment = options.Increment or 1
+	local suffix = options.Suffix or ""
+	local decimals = getDecimals(increment)
+	local value = snap(options.Default or minimum, minimum, maximum, increment, decimals)
+
+	self:createLabel(row, options.Name, 21)
+	local valueLabel = self:createValueLabel(row, 21)
+
+	local track = create("Frame", {
+		Name = "Track",
+		Position = UDim2.fromOffset(ROW_PADDING, 54),
+		Size = UDim2.new(1, -(ROW_PADDING * 2 + 1), 0, 12),
+		BackgroundColor3 = Theme.track,
+	}, row)
+	round(track, 6)
+
+	local fill = create("Frame", {
+		Name = "Fill",
+		Size = UDim2.fromScale(0, 1),
+		BackgroundColor3 = Theme.accent,
+	}, track)
+	round(fill, 6)
+	create("UIGradient", {
+		Color = ColorSequence.new(Theme.accent, Theme.accentLight),
+	}, fill)
+
+	local hit = create("TextButton", {
+		Name = "Hit",
+		Position = UDim2.fromOffset(ROW_PADDING, 38),
+		Size = UDim2.new(1, -(ROW_PADDING * 2 + 1), 0, 44),
+	}, row)
+
+	local control = {}
+
+	local function render(animate)
+		local alpha = (value - minimum) / (maximum - minimum)
+		valueLabel.Text = formatNumber(value, decimals) .. suffix
+		if animate then
+			tween(fill, 0.1, { Size = UDim2.fromScale(alpha, 1) })
+		else
+			fill.Size = UDim2.fromScale(alpha, 1)
+		end
+	end
+
+	local function apply(newValue, animate, silent)
+		newValue = snap(newValue, minimum, maximum, increment, decimals)
+		if newValue == value then
+			return
+		end
+		value = newValue
+		Evenesce.Flags[flag] = value
+		render(animate)
+		if not silent then
+			fire(callback, value)
+		end
+	end
+
+	Evenesce.Flags[flag] = value
+	render(false)
+
+	hit.InputBegan:Connect(function(input)
+		if not isPress(input) then
+			return
+		end
+
+		local function move(position)
+			local point = pointerPosition(position)
+			local alpha = math.clamp((point.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
+			apply(minimum + (maximum - minimum) * alpha, false, false)
+		end
+
+		move(input.Position)
+		trackDrag(input, move)
+	end)
+
+	function control.set(_, newValue)
+		apply(newValue, true, false)
+	end
+
+	function control.get()
+		return value
+	end
+
+	return control
+end
+
+---Add a two handle range slider row.
+---@param options table
+---@return table
+function Section:addRangeSlider(options)
+	local row = self:createRow(86, options.Name)
+	local flag = options.Flag or options.Name
+	local callback = options.Callback
+	local minimum = options.Min or 0
+	local maximum = options.Max or 100
+	local increment = options.Increment or 1
+	local suffix = options.Suffix or ""
+	local decimals = getDecimals(increment)
+	local default = options.Default or { minimum, maximum }
+	local low = snap(default[1], minimum, maximum, increment, decimals)
+	local high = snap(default[2], minimum, maximum, increment, decimals)
+
+	self:createLabel(row, options.Name, 21)
+	local valueLabel = self:createValueLabel(row, 21)
+
+	local track = create("Frame", {
+		Name = "Track",
+		Position = UDim2.fromOffset(ROW_PADDING, 54),
+		Size = UDim2.new(1, -(ROW_PADDING * 2 + 1), 0, 12),
+		BackgroundColor3 = Theme.track,
+	}, row)
+	round(track, 6)
+
+	local fill = create("Frame", {
+		Name = "Fill",
+		BackgroundColor3 = Theme.accent,
+	}, track)
+	round(fill, 6)
+	create("UIGradient", {
+		Color = ColorSequence.new(Theme.accent, Theme.accentLight),
+	}, fill)
+
+	local hit = create("TextButton", {
+		Name = "Hit",
+		Position = UDim2.fromOffset(ROW_PADDING, 38),
+		Size = UDim2.new(1, -(ROW_PADDING * 2 + 1), 0, 44),
+	}, row)
+
+	local control = {}
+
+	local function render()
+		local lowAlpha = (low - minimum) / (maximum - minimum)
+		local highAlpha = (high - minimum) / (maximum - minimum)
+		fill.Position = UDim2.fromScale(lowAlpha, 0)
+		fill.Size = UDim2.fromScale(highAlpha - lowAlpha, 1)
+		valueLabel.Text = formatNumber(low, decimals) .. suffix .. " - " .. formatNumber(high, decimals) .. suffix
+	end
+
+	local function apply(newLow, newHigh, silent)
+		newLow = snap(newLow, minimum, maximum, increment, decimals)
+		newHigh = snap(newHigh, minimum, maximum, increment, decimals)
+		if newLow > newHigh then
+			newLow, newHigh = newHigh, newLow
+		end
+		if newLow == low and newHigh == high then
+			return
+		end
+		low, high = newLow, newHigh
+		Evenesce.Flags[flag] = { low, high }
+		render()
+		if not silent then
+			fire(callback, low, high)
+		end
+	end
+
+	Evenesce.Flags[flag] = { low, high }
+	render()
+
+	hit.InputBegan:Connect(function(input)
+		if not isPress(input) then
+			return
+		end
+
+		local function alphaAt(position)
+			local point = pointerPosition(position)
+			return math.clamp((point.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
+		end
+
+		-- Pick the handle closest to the press and keep dragging that one.
+		local startAlpha = alphaAt(input.Position)
+		local lowAlpha = (low - minimum) / (maximum - minimum)
+		local highAlpha = (high - minimum) / (maximum - minimum)
+		local dragLow = math.abs(startAlpha - lowAlpha) <= math.abs(startAlpha - highAlpha)
+		if lowAlpha == highAlpha then
+			dragLow = startAlpha < lowAlpha
+		end
+
+		local function move(position)
+			local target = minimum + (maximum - minimum) * alphaAt(position)
+			if dragLow then
+				apply(math.min(target, high), high, false)
+			else
+				apply(low, math.max(target, low), false)
+			end
+		end
+
+		move(input.Position)
+		trackDrag(input, move)
+	end)
+
+	function control.set(_, newLow, newHigh)
+		apply(newLow, newHigh, false)
+	end
+
+	function control.get()
+		return low, high
+	end
+
+	return control
+end
+
+---Add a dropdown row. Set Multi to allow several selections.
+---@param options table
+---@return table
+function Section:addDropdown(options)
+	local window = self.window
+	local row = self:createRow(116, options.Name)
+	local flag = options.Flag or options.Name
+	local callback = options.Callback
+	local entries = options.Options or {}
+	local multi = options.Multi == true
+	local value
+
+	if multi then
+		value = {}
+		for _, entry in ipairs(options.Default or {}) do
+			value[entry] = true
+		end
+	else
+		value = options.Default or entries[1]
+	end
+
+	self:createLabel(row, options.Name, 22)
+
+	local field = create("TextButton", {
+		Name = "Field",
+		Position = UDim2.fromOffset(ROW_PADDING, 48),
+		Size = UDim2.new(1, -(ROW_PADDING * 2 + 1), 0, 53),
+		BackgroundTransparency = 0,
+		BackgroundColor3 = Theme.elementBackground,
+	}, row)
+	round(field, 12)
+	bindHoverFill(field, Theme.elementBackground, Color3.fromHex("#212126"))
+
+	local valueText = create("TextLabel", {
+		Name = "Value",
+		Position = UDim2.fromOffset(22, 0),
+		Size = UDim2.new(1, -72, 1, 0),
+		Font = FONT_MEDIUM,
+		TextSize = 19,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextTruncate = Enum.TextTruncate.AtEnd,
+	}, field)
+
+	local chevron = createIcon(field, "chevron-down", 22, Theme.textPrimary, "ImageLabel", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.new(1, -34, 0.5, 0),
+	})
+
+	local control = {}
+
+	local function describe()
+		if not multi then
+			return tostring(value or "")
+		end
+
+		local selected = {}
+		for _, entry in ipairs(entries) do
+			if value[entry] then
+				table.insert(selected, entry)
+			end
+		end
+		return #selected > 0 and table.concat(selected, ", ") or "None"
+	end
+
+	local function export()
+		if not multi then
+			return value
+		end
+
+		local selected = {}
+		for _, entry in ipairs(entries) do
+			if value[entry] then
+				table.insert(selected, entry)
+			end
+		end
+		return selected
+	end
+
+	local function render()
+		valueText.Text = describe()
+		Evenesce.Flags[flag] = export()
+	end
+
+	local function pick(entry)
+		if multi then
+			value[entry] = not value[entry] or nil
+		else
+			value = entry
+		end
+		render()
+		fire(callback, export())
+	end
+
+	local function isSelected(entry)
+		if multi then
+			return value[entry] == true
+		end
+		return value == entry
+	end
+
+	render()
+
+	field.Activated:Connect(function()
+		if window.activePopup == window.listPopup and window.listAnchor == field then
+			window:closePopups()
+			return
+		end
+		window:showList(field, entries, isSelected, pick, multi)
+		tween(chevron, 0.15, { Rotation = 180 })
+		window.listClosed = function()
+			tween(chevron, 0.15, { Rotation = 0 })
+		end
+	end)
+
+	function control.set(_, newValue)
+		if multi then
+			value = {}
+			for _, entry in ipairs(newValue or {}) do
+				value[entry] = true
+			end
+		else
+			value = newValue
+		end
+		render()
+		fire(callback, export())
+	end
+
+	function control.get()
+		return export()
+	end
+
+	function control.refresh(_, newOptions)
+		entries = newOptions
+		if not multi and not table.find(entries, value) then
+			value = entries[1]
+		end
+		render()
+	end
+
+	return control
+end
+
+---Add a colour row with a swatch that opens the colour picker.
+---@param options table
+---@return table
+function Section:addColorPicker(options)
+	local window = self.window
+	local row = self:createRow(66, options.Name)
+	local flag = options.Flag or options.Name
+	local callback = options.Callback
+	local value = options.Default or Theme.accent
+
+	self:createLabel(row, options.Name, 33, Theme.textPrimary)
+
+	local swatch = create("TextButton", {
+		Name = "Swatch",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.new(1, -(ROW_PADDING + 19), 0, 33),
+		Size = UDim2.fromOffset(36, 36),
+	}, row)
+	round(swatch, 18)
+	swatch.BackgroundTransparency = 0
+
+	local core = create("Frame", {
+		Name = "Core",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromOffset(24, 24),
+	}, swatch)
+	round(core, 12)
+
+	local control = {}
+
+	local function render()
+		swatch.BackgroundColor3 = value:Lerp(Theme.cardBackground, 0.55)
+		core.BackgroundColor3 = value
+		Evenesce.Flags[flag] = value
+	end
+
+	render()
+
+	swatch.Activated:Connect(function()
+		window:showColor(swatch, value, function(color)
+			value = color
+			render()
+			fire(callback, value)
+		end)
+	end)
+
+	function control.set(_, color)
+		value = color
+		render()
+		fire(callback, value)
+	end
+
+	function control.get()
+		return value
+	end
+
+	return control
+end
+
+---Add a text input row. Name is optional.
+---@param options table
+---@return table
+function Section:addTextBox(options)
+	local hasName = options.Name ~= nil and options.Name ~= ""
+	local flag = options.Flag or options.Name or "TextBox"
+	local callback = options.Callback
+	local height = (hasName and 47 or 0) + 54 + (options.Divider and 14 or 0)
+	local row = self:createRow(height, options.Name or "TextBox", not options.Divider)
+
+	if hasName then
+		self:createLabel(row, options.Name, 22)
+	end
+
+	local box = create("TextBox", {
+		Name = "Input",
+		Position = UDim2.fromOffset(ROW_PADDING, hasName and 47 or 0),
+		Size = UDim2.new(1, -(ROW_PADDING * 2 + 1), 0, 54),
+		BackgroundTransparency = 0,
+		BackgroundColor3 = Theme.elementBackground,
+		PlaceholderText = options.Placeholder or "",
+		PlaceholderColor3 = Theme.textDim,
+		Text = options.Default or "",
+		TextColor3 = Theme.textPrimary,
+		TextSize = 19,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		ClearTextOnFocus = options.ClearOnFocus == true,
+	}, row)
+	round(box, 12)
+
+	local control = {}
+	Evenesce.Flags[flag] = box.Text
+
+	box.FocusLost:Connect(function(enterPressed)
+		Evenesce.Flags[flag] = box.Text
+		fire(callback, box.Text, enterPressed)
+	end)
+
+	function control.set(_, text)
+		box.Text = text
+		Evenesce.Flags[flag] = text
+	end
+
+	function control.get()
+		return box.Text
+	end
+
+	return control
+end
+
+---Add a full width button row.
+---@param options table
+---@return table
+function Section:addButton(options)
+	local row = self:createRow(86, options.Name, true)
+
+	local button = create("TextButton", {
+		Name = "Button",
+		Position = UDim2.fromOffset(ROW_PADDING, 18),
+		Size = UDim2.new(1, -(ROW_PADDING * 2 + 1), 0, 54),
+		BackgroundTransparency = 0,
+		BackgroundColor3 = Theme.elementBackground,
+		Text = options.Name,
+		TextSize = 19,
+	}, row)
+	round(button, 12)
+	bindHoverFill(button, Theme.elementBackground, Color3.fromHex("#222227"))
+
+	button.Activated:Connect(function()
+		fire(options.Callback)
+	end)
+
+	return {
+		setText = function(_, text)
+			button.Text = text
+		end,
+	}
+end
+
+---Add a plain text row.
+---@param text string
+---@return table
+function Section:addLabel(text)
+	local row = self:createRow(60, text, true)
+	local label = self:createLabel(row, text, 30)
+	label.Size = UDim2.new(1, -(ROW_PADDING * 2), 0, 24)
+
+	return {
+		setText = function(_, newText)
+			label.Text = newText
+		end,
+	}
+end
+
+--------------------------------------------------------------------------------
+-- Page
+--------------------------------------------------------------------------------
+
+---Create a scrolling page with two columns.
+---@param tab table
+---@param name string
+---@return table
+function Page.new(tab, name)
+	local self = setmetatable({}, Page)
+	self.tab = tab
+	self.window = tab.window
+	self.name = name
+	self.sections = {}
+
+	self.scroll = create("ScrollingFrame", {
+		Name = name .. "Page",
+		Position = UDim2.fromOffset(SIDEBAR_WIDTH, PAGE_TOP),
+		Size = UDim2.fromOffset(WINDOW_WIDTH - SIDEBAR_WIDTH, WINDOW_HEIGHT - PAGE_TOP),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ClipsDescendants = true,
+		ScrollBarThickness = 0,
+		ScrollingDirection = Enum.ScrollingDirection.Y,
+		CanvasSize = UDim2.fromOffset(0, 0),
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		Visible = false,
+	}, self.window.frame)
+
+	local function createColumn(x)
+		local column = create("Frame", {
+			Position = UDim2.fromOffset(x, 9),
+			Size = UDim2.fromOffset(COLUMN_WIDTH, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			BackgroundTransparency = 1,
+		}, self.scroll)
+		create("UIListLayout", {
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Padding = UDim.new(0, 32),
+		}, column)
+		create("UIPadding", { PaddingBottom = UDim.new(0, 28) }, column)
+		return column
+	end
+
+	self.leftColumn = createColumn(20)
+	self.rightColumn = createColumn(552)
+	self.leftColumn.Name = "LeftColumn"
+	self.rightColumn.Name = "RightColumn"
+
+	self.scroll:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
+		if self.window.activePopup then
+			self.window:closePopups()
+		end
+	end)
+
+	return self
+end
+
+---Add a section to the left or right column.
+---@param options table
+---@return table
+function Page:addSection(options)
+	local section = Section.new(self, options)
+	table.insert(self.sections, section)
+	return section
+end
+
+--------------------------------------------------------------------------------
+-- Tab
+--------------------------------------------------------------------------------
+
+---Create a sidebar tab.
+---@param window table
+---@param options table
+---@return table
+function Tab.new(window, options)
+	local self = setmetatable({}, Tab)
+	self.window = window
+	self.name = options.Name or "Tab"
+	self.pages = {}
+	self.activePage = nil
+
+	local y = #window.tabs * 65
+
+	self.bar = create("Frame", {
+		Name = "ActiveBar",
+		Position = UDim2.fromOffset(0, y + 12),
+		Size = UDim2.fromOffset(4, 32),
+		BackgroundColor3 = Theme.accent,
+		Visible = false,
+	}, window.tabHolder)
+	round(self.bar, 2)
+
+	self.button = create("TextButton", {
+		Name = self.name .. "Tab",
+		Position = UDim2.fromOffset(14, y),
+		Size = UDim2.fromOffset(351, 56),
+		BackgroundColor3 = Color3.fromHex("#1b1b1f"),
+		BackgroundTransparency = 1,
+	}, window.tabHolder)
+	round(self.button, 14)
+
+	self.icon = createIcon(self.button, options.Icon or "circle", 26, Theme.textMuted, "ImageLabel", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromOffset(31, 28),
+	})
+
+	self.label = create("TextLabel", {
+		Name = "Label",
+		Position = UDim2.fromOffset(72, 0),
+		Size = UDim2.new(1, -84, 1, 0),
+		Text = self.name,
+		Font = FONT_MEDIUM,
+		TextSize = 20,
+		TextColor3 = Theme.textMuted,
+		TextXAlignment = Enum.TextXAlignment.Left,
+	}, self.button)
+
+	self.button.Activated:Connect(function()
+		window:selectTab(self)
+	end)
+
+	self.button.MouseEnter:Connect(function()
+		if window.activeTab ~= self then
+			tween(self.label, 0.12, { TextColor3 = Theme.textPrimary })
+			tween(self.icon, 0.12, { ImageColor3 = Theme.textPrimary })
+		end
+	end)
+
+	self.button.MouseLeave:Connect(function()
+		if window.activeTab ~= self then
+			tween(self.label, 0.12, { TextColor3 = Theme.textMuted })
+			tween(self.icon, 0.12, { ImageColor3 = Theme.textMuted })
+		end
+	end)
+
+	return self
+end
+
+---Apply the active or inactive tab look.
+---@param active boolean
+function Tab:setActive(active)
+	self.bar.Visible = active
+	tween(self.button, 0.15, { BackgroundTransparency = active and 0 or 1 })
+	tween(self.label, 0.15, { TextColor3 = active and Theme.textPrimary or Theme.textMuted })
+	tween(self.icon, 0.15, { ImageColor3 = active and Theme.textPrimary or Theme.textMuted })
+end
+
+---Add a page that appears in the page dropdown.
+---@param name string
+---@return table
+function Tab:addPage(name)
+	local page = Page.new(self, name)
+	table.insert(self.pages, page)
+
+	if not self.activePage then
+		self.activePage = page
+		if self.window.activeTab == self then
+			self.window:selectPage(page)
+		end
+	end
+
+	return page
+end
+
+--------------------------------------------------------------------------------
+-- Window
+--------------------------------------------------------------------------------
+
+---Create the window, watermark and floating menu button.
+---@param options table?
+---@return table
+function Window.new(options)
+	options = options or {}
+
+	local self = setmetatable({}, Window)
+	self.options = options
+	self.title = options.Title or "Evenesce"
+	self.toggleKey = options.ToggleKey or Enum.KeyCode.RightShift
+	self.onConfigClick = options.OnConfigClick
+	self.onSettingsClick = options.OnSettingsClick
+	self.connections = {}
+	self.tabs = {}
+	self.activeTab = nil
+	self.activePage = nil
+	self.activePopup = nil
+	self.visible = true
+
+	self.gui = createScreenGui()
+	self.root = create("Frame", {
+		Name = "Root",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromOffset(DESIGN_WIDTH, DESIGN_HEIGHT),
+		BackgroundTransparency = 1,
+	}, self.gui)
+	self.scale = create("UIScale", {}, self.root)
+
+	self:updateScale()
+	self:connect(self.gui:GetPropertyChangedSignal("AbsoluteSize"), function()
+		self:updateScale()
+	end)
+
+	if options.Watermark ~= false then
+		self:buildWatermark()
+	end
+
+	self:buildWindow()
+	self:buildSidebar()
+	self:buildTopbar()
+	self:buildOverlay()
+	self:buildMenuButton()
+
+	self:connect(userInputService.InputBegan, function(input, processed)
+		if processed then
+			return
+		end
+		if input.KeyCode == self.toggleKey then
+			self:setVisible(not self.visible)
+		end
+	end)
+
+	return self
+end
+
+---Store a connection so destroy can clean it up.
+---@param signal RBXScriptSignal
+---@param callback function
+---@return RBXScriptConnection
+function Window:connect(signal, callback)
+	local connection = signal:Connect(callback)
+	table.insert(self.connections, connection)
+	return connection
+end
+
+---Fit the fixed design canvas to the screen.
+function Window:updateScale()
+	local size = self.gui.AbsoluteSize
+	if size.X <= 0 or size.Y <= 0 then
+		local camera = workspace.CurrentCamera
+		size = camera and camera.ViewportSize or Vector2.new(DESIGN_WIDTH, DESIGN_HEIGHT)
+	end
+
+	local multiplier = self.options.Scale or 1
+	self.scale.Scale = math.min(size.X / DESIGN_WIDTH, size.Y / DESIGN_HEIGHT) * multiplier
+end
+
+---Build the top status bar.
+function Window:buildWatermark()
+	local watermark = create("Frame", {
+		Name = "Watermark",
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.fromOffset(925, 47),
+		Size = UDim2.fromOffset(0, 54),
+		AutomaticSize = Enum.AutomaticSize.X,
+		BackgroundColor3 = Theme.watermarkBackground,
+	}, self.root)
+	round(watermark, 14)
+	outline(watermark, Theme.border)
+
+	create("UIPadding", {
+		PaddingLeft = UDim.new(0, 26),
+		PaddingRight = UDim.new(0, 25),
+	}, watermark)
+	create("UIListLayout", {
+		FillDirection = Enum.FillDirection.Horizontal,
+		VerticalAlignment = Enum.VerticalAlignment.Center,
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		Padding = UDim.new(0, 19),
+	}, watermark)
+
+	local order = 0
+	local function nextOrder()
+		order = order + 1
+		return order
+	end
+
+	local logo = createLogo(watermark, 25, UDim2.new())
+	logo.LayoutOrder = nextOrder()
+
+	create("TextLabel", {
+		Name = "Title",
+		Size = UDim2.fromOffset(0, 30),
+		AutomaticSize = Enum.AutomaticSize.X,
+		Text = self.title,
+		Font = FONT_BOLD,
+		TextSize = 27,
+		LayoutOrder = nextOrder(),
+	}, watermark)
+
+	local function separator()
+		create("Frame", {
+			Name = "Separator",
+			Size = UDim2.fromOffset(1, 26),
+			BackgroundColor3 = Theme.border,
+			LayoutOrder = nextOrder(),
+		}, watermark)
+	end
+
+	local function entry(name, text)
+		return create("TextLabel", {
+			Name = name,
+			Size = UDim2.fromOffset(0, 26),
+			AutomaticSize = Enum.AutomaticSize.X,
+			Text = text,
+			Font = FONT_MEDIUM,
+			TextSize = 19,
+			TextColor3 = Theme.textMuted,
+			LayoutOrder = nextOrder(),
+		}, watermark)
+	end
+
+	separator()
+	local gameLabel = entry("Game", self.options.GameName or "")
+	separator()
+	local fpsLabel = entry("Fps", "0 fps")
+	separator()
+	local pingLabel = entry("Ping", "0 ms")
+	separator()
+	local clockLabel = entry("Clock", os.date("%H:%M:%S"))
+
+	if not self.options.GameName then
+		task.spawn(function()
+			local success, info = pcall(function()
+				return marketplaceService:GetProductInfo(game.PlaceId)
+			end)
+			gameLabel.Text = success and info.Name or "Unknown"
+		end)
+	end
+
+	-- Refresh the readouts twice per second from a single heartbeat connection.
+	local frames = 0
+	local elapsed = 0
+	self:connect(runService.Heartbeat, function(delta)
+		frames = frames + 1
+		elapsed = elapsed + delta
+		if elapsed < 0.5 then
+			return
+		end
+
+		fpsLabel.Text = string.format("%d fps", math.floor(frames / elapsed + 0.5))
+		frames = 0
+		elapsed = 0
+
+		local success, ping = pcall(function()
+			return statsService.Network.ServerStatsItem["Data Ping"]:GetValue()
+		end)
+		pingLabel.Text = string.format("%d ms", success and math.floor(ping + 0.5) or 0)
+		clockLabel.Text = os.date("%H:%M:%S")
+	end)
+
+	self.watermark = watermark
+end
+
+---Build the main window frame and its drag handles.
+function Window:buildWindow()
+	self.frame = create("Frame", {
+		Name = "Window",
+		Position = UDim2.fromOffset(WINDOW_X, WINDOW_Y),
+		Size = UDim2.fromOffset(WINDOW_WIDTH, WINDOW_HEIGHT),
+		BackgroundColor3 = Theme.windowBackground,
+		ClipsDescendants = true,
+	}, self.root)
+	round(self.frame, 28)
+	outline(self.frame, Theme.border, 0.35)
+
+	local function makeDraggable(handle)
+		handle.InputBegan:Connect(function(input)
+			if not isPress(input) then
+				return
+			end
+
+			local start = Vector2.new(input.Position.X, input.Position.Y)
+			local origin = self.frame.Position
+			trackDrag(input, function(position)
+				local delta = (Vector2.new(position.X, position.Y) - start) / self.scale.Scale
+				self.frame.Position = UDim2.fromOffset(origin.X.Offset + delta.X, origin.Y.Offset + delta.Y)
+			end)
+		end)
+	end
+
+	local sidebarHandle = create("Frame", {
+		Name = "SidebarDragHandle",
+		Size = UDim2.fromOffset(SIDEBAR_WIDTH, 84),
+		BackgroundTransparency = 1,
+	}, self.frame)
+	local topbarHandle = create("Frame", {
+		Name = "TopbarDragHandle",
+		Position = UDim2.fromOffset(SIDEBAR_WIDTH, 0),
+		Size = UDim2.fromOffset(WINDOW_WIDTH - SIDEBAR_WIDTH, PAGE_TOP),
+		BackgroundTransparency = 1,
+	}, self.frame)
+
+	makeDraggable(sidebarHandle)
+	makeDraggable(topbarHandle)
+end
+
+---Build the logo, search box and tab list.
+function Window:buildSidebar()
+	createLogo(self.frame, 36, UDim2.fromOffset(32, 26))
+
+	create("TextLabel", {
+		Name = "Title",
+		AnchorPoint = Vector2.new(0, 0.5),
+		Position = UDim2.fromOffset(92, 49),
+		Size = UDim2.fromOffset(270, 48),
+		Text = self.title,
+		Font = FONT_BOLD,
+		TextSize = 40,
+		TextXAlignment = Enum.TextXAlignment.Left,
+	}, self.frame)
+
+	local search = create("Frame", {
+		Name = "Search",
+		Position = UDim2.fromOffset(14, 93),
+		Size = UDim2.fromOffset(351, 56),
+		BackgroundColor3 = Theme.searchBackground,
+	}, self.frame)
+	round(search, 14)
+
+	createIcon(search, "search", 24, Theme.textMuted, "ImageLabel", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromOffset(25, 28),
+	})
+
+	self.searchBox = create("TextBox", {
+		Name = "Input",
+		Position = UDim2.fromOffset(54, 0),
+		Size = UDim2.new(1, -70, 1, 0),
+		PlaceholderText = "Search",
+		PlaceholderColor3 = Theme.textMuted,
+		Text = "",
+		TextSize = 20,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		ClearTextOnFocus = false,
+	}, search)
+
+	self:connect(self.searchBox:GetPropertyChangedSignal("Text"), function()
+		self:applySearch(self.searchBox.Text)
+	end)
+
+	create("Frame", {
+		Name = "Divider",
+		Position = UDim2.fromOffset(0, 176),
+		Size = UDim2.fromOffset(SIDEBAR_WIDTH, 1),
+		BackgroundColor3 = Theme.divider,
+	}, self.frame)
+
+	self.tabHolder = create("Frame", {
+		Name = "Tabs",
+		Position = UDim2.fromOffset(0, 202),
+		Size = UDim2.fromOffset(SIDEBAR_WIDTH, WINDOW_HEIGHT - 202),
+		BackgroundTransparency = 1,
+	}, self.frame)
+end
+
+---Build the config button, page dropdown, header buttons and breadcrumb.
+function Window:buildTopbar()
+	local function squareButton(name, x, icon)
+		local button = create("TextButton", {
+			Name = name,
+			Position = UDim2.fromOffset(x, 27),
+			Size = UDim2.fromOffset(63, 63),
+			BackgroundTransparency = 0,
+			BackgroundColor3 = Theme.elementBackground,
+		}, self.frame)
+		round(button, 14)
+		bindHoverFill(button, Theme.elementBackground, Color3.fromHex("#222227"))
+
+		createIcon(button, icon, 28, Theme.textMuted, "ImageLabel", {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.5, 0.5),
+		})
+		return button
+	end
+
+	local configButton = squareButton("ConfigButton", 406, "folder-plus")
+	configButton.Activated:Connect(function()
+		fire(self.onConfigClick)
+	end)
+
+	local settingsButton = squareButton("SettingsButton", 1282, "settings")
+	settingsButton.Activated:Connect(function()
+		fire(self.onSettingsClick)
+	end)
+
+	local closeButton = squareButton("CloseButton", 1354, "x")
+	closeButton.Activated:Connect(function()
+		self:setVisible(false)
+	end)
+
+	self.pageField = create("TextButton", {
+		Name = "PageField",
+		Position = UDim2.fromOffset(487, 27),
+		Size = UDim2.fromOffset(343, 63),
+		BackgroundTransparency = 0,
+		BackgroundColor3 = Theme.elementBackground,
+	}, self.frame)
+	round(self.pageField, 14)
+	bindHoverFill(self.pageField, Theme.elementBackground, Color3.fromHex("#212126"))
+
+	self.pageText = create("TextLabel", {
+		Name = "Value",
+		Position = UDim2.fromOffset(25, 0),
+		Size = UDim2.new(1, -80, 1, 0),
+		Font = FONT_MEDIUM,
+		TextSize = 21,
+		TextColor3 = Theme.textMuted,
+		TextXAlignment = Enum.TextXAlignment.Left,
+	}, self.pageField)
+
+	self.pageChevron = createIcon(self.pageField, "chevron-down", 24, Theme.textMuted, "ImageLabel", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.new(1, -35, 0.5, 0),
+	})
+
+	self.pageField.Activated:Connect(function()
+		local tab = self.activeTab
+		if not tab or #tab.pages == 0 then
+			return
+		end
+
+		if self.activePopup == self.listPopup and self.listAnchor == self.pageField then
+			self:closePopups()
+			return
+		end
+
+		local names = {}
+		for _, page in ipairs(tab.pages) do
+			table.insert(names, page.name)
+		end
+
+		self:showList(self.pageField, names, function(name)
+			return self.activePage and self.activePage.name == name
+		end, function(name)
+			for _, page in ipairs(tab.pages) do
+				if page.name == name then
+					tab.activePage = page
+					self:selectPage(page)
+					break
+				end
+			end
+			self:closePopups()
+		end, false)
+
+		tween(self.pageChevron, 0.15, { Rotation = 180 })
+		self.listClosed = function()
+			tween(self.pageChevron, 0.15, { Rotation = 0 })
+		end
+	end)
+
+	local breadcrumb = create("Frame", {
+		Name = "Breadcrumb",
+		Position = UDim2.fromOffset(406, 104),
+		Size = UDim2.fromOffset(600, 42),
+		BackgroundTransparency = 1,
+	}, self.frame)
+	create("UIListLayout", {
+		FillDirection = Enum.FillDirection.Horizontal,
+		VerticalAlignment = Enum.VerticalAlignment.Center,
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		Padding = UDim.new(0, 6),
+	}, breadcrumb)
+
+	self.crumbTab = create("TextLabel", {
+		Name = "Tab",
+		Size = UDim2.fromOffset(0, 30),
+		AutomaticSize = Enum.AutomaticSize.X,
+		Font = FONT_BOLD,
+		TextSize = 22,
+		LayoutOrder = 1,
+	}, breadcrumb)
+
+	self.crumbArrow = createIcon(breadcrumb, "chevron-right", 18, Theme.textMuted, "ImageLabel", {
+		LayoutOrder = 2,
+	})
+
+	self.crumbPage = create("TextLabel", {
+		Name = "Page",
+		Size = UDim2.fromOffset(0, 30),
+		AutomaticSize = Enum.AutomaticSize.X,
+		Font = FONT_MEDIUM,
+		TextSize = 22,
+		TextColor3 = Theme.textMuted,
+		LayoutOrder = 3,
+	}, breadcrumb)
+end
+
+---Build the popup layer used by dropdowns and the colour picker.
+function Window:buildOverlay()
+	self.overlay = create("Frame", {
+		Name = "Overlay",
+		Size = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1,
+		Visible = false,
+		ZIndex = 50,
+	}, self.frame)
+
+	local catcher = create("TextButton", {
+		Name = "Catcher",
+		Size = UDim2.fromScale(1, 1),
+		ZIndex = 50,
+	}, self.overlay)
+	catcher.Activated:Connect(function()
+		self:closePopups()
+	end)
+
+	-- Shared list popup, rebuilt on every open.
+	self.listPopup = create("Frame", {
+		Name = "ListPopup",
+		BackgroundColor3 = Theme.popupBackground,
+		Visible = false,
+		ZIndex = 51,
+	}, self.overlay)
+	round(self.listPopup, 14)
+	outline(self.listPopup, Theme.border)
+
+	self.listContainer = create("ScrollingFrame", {
+		Name = "Entries",
+		Position = UDim2.fromOffset(0, 6),
+		Size = UDim2.new(1, 0, 1, -12),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ScrollBarThickness = 0,
+		CanvasSize = UDim2.fromOffset(0, 0),
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		ZIndex = 51,
+	}, self.listPopup)
+	create("UIListLayout", {
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		Padding = UDim.new(0, 0),
+	}, self.listContainer)
+	create("UIPadding", {
+		PaddingLeft = UDim.new(0, 6),
+		PaddingRight = UDim.new(0, 6),
+	}, self.listContainer)
+
+	self:buildColorPopup()
+end
+
+---Build the shared colour picker popup.
+function Window:buildColorPopup()
+	local popup = create("Frame", {
+		Name = "ColorPopup",
+		Size = UDim2.fromOffset(260, 250),
+		BackgroundColor3 = Theme.popupBackground,
+		Visible = false,
+		ZIndex = 51,
+	}, self.overlay)
+	round(popup, 16)
+	outline(popup, Theme.border)
+
+	local svBox = create("Frame", {
+		Name = "Saturation",
+		Position = UDim2.fromOffset(14, 14),
+		Size = UDim2.fromOffset(232, 150),
+		BackgroundColor3 = Color3.new(1, 0, 0),
+	}, popup)
+	round(svBox, 10)
+
+	local whiteLayer = create("Frame", {
+		Size = UDim2.fromScale(1, 1),
+		BackgroundColor3 = Color3.new(1, 1, 1),
+	}, svBox)
+	round(whiteLayer, 10)
+	create("UIGradient", {
+		Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0),
+			NumberSequenceKeypoint.new(1, 1),
+		}),
+	}, whiteLayer)
+
+	local blackLayer = create("Frame", {
+		Size = UDim2.fromScale(1, 1),
+		BackgroundColor3 = Color3.new(0, 0, 0),
+	}, svBox)
+	round(blackLayer, 10)
+	create("UIGradient", {
+		Rotation = 90,
+		Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 1),
+			NumberSequenceKeypoint.new(1, 0),
+		}),
+	}, blackLayer)
+
+	local svCursor = create("Frame", {
+		Name = "Cursor",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Size = UDim2.fromOffset(14, 14),
+		BackgroundTransparency = 1,
+		ZIndex = 52,
+	}, svBox)
+	round(svCursor, 7)
+	create("UIStroke", { Color = Color3.new(1, 1, 1), Thickness = 2 }, svCursor)
+
+	local svButton = create("TextButton", {
+		Name = "Hit",
+		Size = UDim2.fromScale(1, 1),
+		ZIndex = 53,
+	}, svBox)
+
+	local hueBar = create("Frame", {
+		Name = "Hue",
+		Position = UDim2.fromOffset(14, 176),
+		Size = UDim2.fromOffset(232, 14),
+		BackgroundColor3 = Color3.new(1, 1, 1),
+	}, popup)
+	round(hueBar, 7)
+	create("UIGradient", {
+		Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromHSV(0, 1, 1)),
+			ColorSequenceKeypoint.new(1 / 6, Color3.fromHSV(1 / 6, 1, 1)),
+			ColorSequenceKeypoint.new(2 / 6, Color3.fromHSV(2 / 6, 1, 1)),
+			ColorSequenceKeypoint.new(3 / 6, Color3.fromHSV(3 / 6, 1, 1)),
+			ColorSequenceKeypoint.new(4 / 6, Color3.fromHSV(4 / 6, 1, 1)),
+			ColorSequenceKeypoint.new(5 / 6, Color3.fromHSV(5 / 6, 1, 1)),
+			ColorSequenceKeypoint.new(1, Color3.fromHSV(0, 1, 1)),
+		}),
+	}, hueBar)
+
+	local hueCursor = create("Frame", {
+		Name = "Cursor",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0, 0.5),
+		Size = UDim2.fromOffset(18, 18),
+		BackgroundColor3 = Color3.new(1, 1, 1),
+		ZIndex = 52,
+	}, hueBar)
+	round(hueCursor, 9)
+	create("UIStroke", { Color = Theme.popupBackground, Thickness = 3 }, hueCursor)
+
+	local hueButton = create("TextButton", {
+		Name = "Hit",
+		Position = UDim2.fromOffset(0, -6),
+		Size = UDim2.new(1, 0, 1, 12),
+		ZIndex = 53,
+	}, hueBar)
+
+	local hexBox = create("TextBox", {
+		Name = "Hex",
+		Position = UDim2.fromOffset(14, 202),
+		Size = UDim2.fromOffset(232, 34),
+		BackgroundTransparency = 0,
+		BackgroundColor3 = Theme.elementBackground,
+		TextSize = 17,
+		ClearTextOnFocus = false,
+		ZIndex = 52,
+	}, popup)
+	round(hexBox, 10)
+
+	local hue, saturation, brightness = 0, 0, 1
+
+	local function refresh(notify)
+		svBox.BackgroundColor3 = Color3.fromHSV(hue, 1, 1)
+		svCursor.Position = UDim2.fromScale(saturation, 1 - brightness)
+		hueCursor.Position = UDim2.fromScale(hue, 0.5)
+
+		local color = Color3.fromHSV(hue, saturation, brightness)
+		hexBox.Text = "#" .. color:ToHex()
+
+		if notify and self.colorContext then
+			self.colorContext(color)
+		end
+	end
+
+	svButton.InputBegan:Connect(function(input)
+		if not isPress(input) then
+			return
+		end
+
+		local function move(position)
+			local point = pointerPosition(position)
+			saturation = math.clamp((point.X - svBox.AbsolutePosition.X) / svBox.AbsoluteSize.X, 0, 1)
+			brightness = 1 - math.clamp((point.Y - svBox.AbsolutePosition.Y) / svBox.AbsoluteSize.Y, 0, 1)
+			refresh(true)
+		end
+
+		move(input.Position)
+		trackDrag(input, move)
+	end)
+
+	hueButton.InputBegan:Connect(function(input)
+		if not isPress(input) then
+			return
+		end
+
+		local function move(position)
+			local point = pointerPosition(position)
+			hue = math.clamp((point.X - hueBar.AbsolutePosition.X) / hueBar.AbsoluteSize.X, 0, 0.999)
+			refresh(true)
+		end
+
+		move(input.Position)
+		trackDrag(input, move)
+	end)
+
+	hexBox.FocusLost:Connect(function()
+		local text = string.gsub(hexBox.Text, "%s", "")
+		local success, color = pcall(Color3.fromHex, text)
+		if success and color then
+			hue, saturation, brightness = color:ToHSV()
+		end
+		refresh(success)
+	end)
+
+	self.colorPopup = popup
+	self.loadColor = function(color)
+		hue, saturation, brightness = color:ToHSV()
+		refresh(false)
+	end
+end
+
+---Build the floating menu button.
+function Window:buildMenuButton()
+	local button = create("TextButton", {
+		Name = "MenuButton",
+		Position = UDim2.fromOffset(1748, 227),
+		Size = UDim2.fromOffset(84, 84),
+		BackgroundTransparency = 0,
+		BackgroundColor3 = Theme.windowBackground,
+	}, self.root)
+	round(button, 42)
+	outline(button, Theme.border)
+	bindHoverFill(button, Theme.windowBackground, Color3.fromHex("#17171b"))
+
+	createIcon(button, "menu", 34, Theme.accentLight, "ImageLabel", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+	})
+
+	button.Activated:Connect(function()
+		self:setVisible(not self.visible)
+	end)
+
+	self.menuButton = button
+end
+
+---Place a popup below its anchor, or above when there is no room.
+---@param popup Frame
+---@param anchor GuiObject
+---@param alignRight boolean?
+function Window:placePopup(popup, anchor, alignRight)
+	local scale = self.scale.Scale
+	local overlayPosition = self.overlay.AbsolutePosition
+	local anchorPosition = anchor.AbsolutePosition
+	local anchorSize = anchor.AbsoluteSize
+
+	local width = popup.Size.X.Offset
+	local height = popup.Size.Y.Offset
+	local x = (anchorPosition.X - overlayPosition.X) / scale
+	if alignRight then
+		x = (anchorPosition.X + anchorSize.X - overlayPosition.X) / scale - width
+	end
+
+	local y = (anchorPosition.Y - overlayPosition.Y + anchorSize.Y) / scale + 8
+	if y + height > WINDOW_HEIGHT - 12 then
+		y = (anchorPosition.Y - overlayPosition.Y) / scale - height - 8
+	end
+
+	x = math.clamp(x, 8, WINDOW_WIDTH - width - 8)
+	popup.Position = UDim2.fromOffset(x, math.max(8, y))
+end
+
+---Open the shared list popup under an anchor.
+---@param anchor GuiObject
+---@param entries table
+---@param isSelected function
+---@param onPick function
+---@param keepOpen boolean
+function Window:showList(anchor, entries, isSelected, onPick, keepOpen)
+	self:closePopups()
+
+	for _, child in ipairs(self.listContainer:GetChildren()) do
+		if child:IsA("TextButton") then
+			child:Destroy()
+		end
+	end
+
+	local itemHeight = 44
+	local scale = self.scale.Scale
+	local visibleCount = math.max(1, math.min(#entries, 6))
+	self.listPopup.Size = UDim2.fromOffset(anchor.AbsoluteSize.X / scale, visibleCount * itemHeight + 12)
+
+	local buttons = {}
+	local function restyle()
+		for entry, parts in pairs(buttons) do
+			local selected = isSelected(entry)
+			parts.label.TextColor3 = selected and Theme.accentLight or Theme.textPrimary
+			parts.check.ImageTransparency = selected and 0 or 1
+		end
+	end
+
+	for index, entry in ipairs(entries) do
+		local button = create("TextButton", {
+			Name = tostring(entry),
+			Size = UDim2.new(1, 0, 0, itemHeight),
+			BackgroundTransparency = 1,
+			BackgroundColor3 = Theme.elementBackground,
+			LayoutOrder = index,
+			ZIndex = 52,
+		}, self.listContainer)
+		round(button, 10)
+
+		local label = create("TextLabel", {
+			Position = UDim2.fromOffset(16, 0),
+			Size = UDim2.new(1, -52, 1, 0),
+			Text = tostring(entry),
+			TextSize = 19,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			ZIndex = 53,
+		}, button)
+
+		local check = createIcon(button, "check", 20, Theme.accentLight, "ImageLabel", {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.new(1, -22, 0.5, 0),
+			ZIndex = 53,
+		})
+
+		buttons[entry] = { label = label, check = check }
+
+		button.MouseEnter:Connect(function()
+			tween(button, 0.1, { BackgroundTransparency = 0 })
+		end)
+		button.MouseLeave:Connect(function()
+			tween(button, 0.1, { BackgroundTransparency = 1 })
+		end)
+		button.Activated:Connect(function()
+			onPick(entry)
+			if keepOpen then
+				restyle()
+			else
+				self:closePopups()
+			end
+		end)
+	end
+
+	restyle()
+	self.listContainer.CanvasPosition = Vector2.zero
+	self.listAnchor = anchor
+	self.overlay.Visible = true
+	self:placePopup(self.listPopup, anchor, false)
+	self.listPopup.Visible = true
+	self.activePopup = self.listPopup
+end
+
+---Open the shared colour picker next to an anchor.
+---@param anchor GuiObject
+---@param color Color3
+---@param onChange function
+function Window:showColor(anchor, color, onChange)
+	self:closePopups()
+	self.loadColor(color)
+	self.colorContext = onChange
+	self.overlay.Visible = true
+	self:placePopup(self.colorPopup, anchor, true)
+	self.colorPopup.Visible = true
+	self.activePopup = self.colorPopup
+end
+
+---Close any open popup.
+function Window:closePopups()
+	self.listPopup.Visible = false
+	self.colorPopup.Visible = false
+	self.overlay.Visible = false
+	self.activePopup = nil
+	self.listAnchor = nil
+	self.colorContext = nil
+
+	if self.listClosed then
+		local callback = self.listClosed
+		self.listClosed = nil
+		callback()
+	end
+end
+
+---Show or hide the window.
+---@param visible boolean
+function Window:setVisible(visible)
+	self.visible = visible
+	self:closePopups()
+	self.frame.Visible = visible
+end
+
+---Hide rows that do not match the search query on the active page.
+---@param query string
+function Window:applySearch(query)
+	local page = self.activePage
+	if not page then
+		return
+	end
+
+	query = string.lower(query or "")
+	for _, section in ipairs(page.sections) do
+		local sectionMatch = query == "" or string.find(string.lower(section.name), query, 1, true) ~= nil
+		local anyVisible = false
+
+		for _, item in ipairs(section.items) do
+			local match = sectionMatch or string.find(string.lower(item.name), query, 1, true) ~= nil
+			item.row.Visible = match
+			anyVisible = anyVisible or match
+		end
+
+		section.holder.Visible = anyVisible or #section.items == 0
+	end
+end
+
+---Show a page and update the breadcrumb.
+---@param page table?
+function Window:selectPage(page)
+	self:closePopups()
+
+	for _, tab in ipairs(self.tabs) do
+		for _, other in ipairs(tab.pages) do
+			other.scroll.Visible = false
+		end
+	end
+
+	self.activePage = page
+	self.crumbTab.Text = self.activeTab and self.activeTab.name or ""
+	self.crumbArrow.Visible = page ~= nil
+	self.crumbPage.Text = page and page.name or ""
+	self.pageText.Text = page and page.name or ""
+
+	if page then
+		page.scroll.CanvasPosition = Vector2.zero
+		page.scroll.Visible = true
+		self:applySearch(self.searchBox.Text)
+	end
+end
+
+---Switch the active sidebar tab.
+---@param tab table
+function Window:selectTab(tab)
+	self:closePopups()
+
+	for _, other in ipairs(self.tabs) do
+		other:setActive(other == tab)
+	end
+
+	self.activeTab = tab
+	self:selectPage(tab.activePage or tab.pages[1])
+end
+
+---Add a tab to the sidebar.
+---@param options table
+---@return table
+function Window:addTab(options)
+	local tab = Tab.new(self, options)
+	table.insert(self.tabs, tab)
+
+	if not self.activeTab then
+		self:selectTab(tab)
+	end
+
+	return tab
+end
+
+---Remove the interface and disconnect every connection.
+function Window:destroy()
+	for _, connection in ipairs(self.connections) do
+		connection:Disconnect()
+	end
+	table.clear(self.connections)
+	self.gui:Destroy()
+end
+
+--------------------------------------------------------------------------------
+-- Public API
+--------------------------------------------------------------------------------
+
+---Create a window.
+---@param options table?
+---@return table
+function Evenesce:createWindow(options)
+	return Window.new(options)
+end
+
+return Evenesce
