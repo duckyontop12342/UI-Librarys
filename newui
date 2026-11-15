@@ -1322,6 +1322,9 @@ function Window.new(options)
 	self.activePopup = nil
 	self.visible = true
 	self.binds = {}
+	self.scaleMultiplier = options.Scale or 0.7
+	self.hideKeybindList = false
+	self.hideNotifications = false
 	self.listening = false
 	self.bindCooldown = false
 
@@ -1349,7 +1352,9 @@ function Window.new(options)
 	self:buildTopbar()
 	self:buildOverlay()
 	self:buildBindPopup()
+	self:buildSettingsPopup()
 	self:buildBindList()
+	self:buildNotifications()
 	self:buildMenuButton()
 
 	self:connect(userInputService.InputBegan, function(input, processed)
@@ -1382,8 +1387,7 @@ function Window:updateScale()
 		size = camera and camera.ViewportSize or Vector2.new(DESIGN_WIDTH, DESIGN_HEIGHT)
 	end
 
-	local multiplier = self.options.Scale or 1
-	self.scale.Scale = math.min(size.X / DESIGN_WIDTH, size.Y / DESIGN_HEIGHT) * multiplier
+	self.scale.Scale = math.min(size.X / DESIGN_WIDTH, size.Y / DESIGN_HEIGHT) * self.scaleMultiplier
 end
 
 ---Build the top status bar.
@@ -1622,6 +1626,11 @@ function Window:buildTopbar()
 
 	local settingsButton = squareButton("SettingsButton", 1282, "settings")
 	settingsButton.Activated:Connect(function()
+		if self.activePopup == self.settingsPopup then
+			self:closePopups()
+		else
+			self:showSettingsPopup(settingsButton)
+		end
 		fire(self.onSettingsClick)
 	end)
 
@@ -2313,6 +2322,358 @@ function Window:buildBindPopup()
 	end)
 end
 
+---Build the menu settings popup opened by the header gear.
+function Window:buildSettingsPopup()
+	local popup = create("Frame", {
+		Name = "SettingsPopup",
+		Size = UDim2.fromOffset(397, 419),
+		BackgroundColor3 = Theme.popupBackground,
+		Visible = false,
+		ZIndex = 101,
+	}, self.rootLayer)
+	round(popup, 16)
+	outline(popup, Theme.border)
+	self.settingsPopup = popup
+
+	local localPlayer = playersService.LocalPlayer
+
+	local avatar = create("ImageLabel", {
+		Name = "Avatar",
+		Position = UDim2.fromOffset(27, 25),
+		Size = UDim2.fromOffset(58, 58),
+		BackgroundTransparency = 0,
+		BackgroundColor3 = Theme.elementBackground,
+		ZIndex = 102,
+	}, popup)
+	round(avatar, 29)
+
+	create("TextLabel", {
+		Name = "DisplayName",
+		Position = UDim2.fromOffset(105, 23),
+		Size = UDim2.fromOffset(270, 30),
+		Text = localPlayer and localPlayer.DisplayName or "Player",
+		Font = FONT_BOLD,
+		TextSize = 19,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		ZIndex = 102,
+	}, popup)
+
+	create("TextLabel", {
+		Name = "Username",
+		Position = UDim2.fromOffset(105, 52),
+		Size = UDim2.fromOffset(270, 24),
+		Text = "@" .. (localPlayer and localPlayer.Name or "player"),
+		TextSize = 15,
+		TextColor3 = Theme.textMuted,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		ZIndex = 102,
+	}, popup)
+
+	if localPlayer then
+		task.spawn(function()
+			local success, url = pcall(function()
+				return playersService:GetUserThumbnailAsync(
+					localPlayer.UserId,
+					Enum.ThumbnailType.HeadShot,
+					Enum.ThumbnailSize.Size100x100
+				)
+			end)
+			if success then
+				avatar.Image = url
+			end
+		end)
+	end
+
+	create("Frame", {
+		Name = "Divider",
+		Position = UDim2.fromOffset(18, 106),
+		Size = UDim2.fromOffset(361, 1),
+		BackgroundColor3 = Theme.divider,
+		ZIndex = 102,
+	}, popup)
+
+	---@return TextButton, function?
+	local function addRow(centerY, icon, text, withCheckbox, onClick)
+		local button = create("TextButton", {
+			Name = text,
+			Position = UDim2.fromOffset(10, centerY - 27),
+			Size = UDim2.fromOffset(377, 54),
+			BackgroundColor3 = Theme.elementBackground,
+			BackgroundTransparency = 1,
+			ZIndex = 102,
+		}, popup)
+		round(button, 10)
+
+		button.MouseEnter:Connect(function()
+			tween(button, 0.1, { BackgroundTransparency = 0 })
+		end)
+		button.MouseLeave:Connect(function()
+			tween(button, 0.1, { BackgroundTransparency = 1 })
+		end)
+
+		createIcon(button, icon, 28, Theme.textMuted, "ImageLabel", {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromOffset(24, 27),
+			ZIndex = 103,
+		})
+
+		create("TextLabel", {
+			Position = UDim2.fromOffset(55, 0),
+			Size = UDim2.new(1, -120, 1, 0),
+			Text = text,
+			TextSize = 19,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			ZIndex = 103,
+		}, button)
+
+		local setChecked
+		if withCheckbox then
+			local box = create("Frame", {
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Position = UDim2.new(1, -34, 0.5, 0),
+				Size = UDim2.fromOffset(31, 31),
+				BackgroundColor3 = Theme.checkboxOff,
+				ZIndex = 103,
+			}, button)
+			round(box, 8)
+
+			local check = createIcon(box, "check", 21, Theme.textPrimary, "ImageLabel", {
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Position = UDim2.fromScale(0.5, 0.5),
+				ImageTransparency = 1,
+				ZIndex = 104,
+			})
+
+			setChecked = function(on)
+				tween(box, 0.15, { BackgroundColor3 = on and Theme.accent or Theme.checkboxOff })
+				tween(check, 0.15, { ImageTransparency = on and 0 or 1 })
+			end
+		else
+			createIcon(button, "chevron-right", 24, Theme.textMuted, "ImageLabel", {
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Position = UDim2.new(1, -34, 0.5, 0),
+				ZIndex = 103,
+			})
+		end
+
+		button.Activated:Connect(function()
+			onClick(button)
+		end)
+
+		return button, setChecked
+	end
+
+	-- Menu scale submenu.
+	addRow(146, "layout-grid", "Menu Scale", false, function(button)
+		local choices = { "50%", "60%", "70%", "80%", "90%", "100%" }
+		self:showList(button, choices, function(choice)
+			return choice == string.format("%d%%", math.floor(self.scaleMultiplier * 100 + 0.5))
+		end, function(choice)
+			self.scaleMultiplier = tonumber(string.match(choice, "%d+")) / 100
+			self:updateScale()
+		end, false)
+	end)
+
+	-- Accent style submenu.
+	local presets = {
+		Purple = { Color3.fromHex("#7a6ff0"), Color3.fromHex("#9d93ff") },
+		Blue = { Color3.fromHex("#4f8cff"), Color3.fromHex("#8bb4ff") },
+		Green = { Color3.fromHex("#3fbf7f"), Color3.fromHex("#7be0a8") },
+		Red = { Color3.fromHex("#e0556b"), Color3.fromHex("#ff8a9b") },
+		Orange = { Color3.fromHex("#e8913a"), Color3.fromHex("#ffbc7a") },
+		Pink = { Color3.fromHex("#e060b8"), Color3.fromHex("#ff9bdd") },
+	}
+	local order = { "Purple", "Blue", "Green", "Red", "Orange", "Pink" }
+	local currentStyle = "Purple"
+
+	addRow(204, "palette", "Style", false, function(button)
+		self:showList(button, order, function(choice)
+			return choice == currentStyle
+		end, function(choice)
+			currentStyle = choice
+			self:setAccent(presets[choice][1], presets[choice][2])
+		end, false)
+	end)
+
+	local _, setWatermark = addRow(262, "list", "Hide Watermark", true, function()
+		local hidden = not (self.watermark and not self.watermark.Visible)
+		if self.watermark then
+			self.watermark.Visible = not hidden
+		end
+		self.settingsState.setWatermark(hidden)
+	end)
+
+	local _, setNotifications = addRow(320, "bell-off", "Hide Notifications", true, function()
+		self.hideNotifications = not self.hideNotifications
+		self.settingsState.setNotifications(self.hideNotifications)
+		if self.hideNotifications then
+			for _, child in ipairs(self.notifyHolder:GetChildren()) do
+				if child:IsA("Frame") then
+					child:Destroy()
+				end
+			end
+		end
+	end)
+
+	local _, setKeybindList = addRow(378, "keyboard", "Hide Keybind List", true, function()
+		self.hideKeybindList = not self.hideKeybindList
+		self.settingsState.setKeybindList(self.hideKeybindList)
+		self:refreshBinds()
+	end)
+
+	self.settingsState = {
+		setWatermark = setWatermark,
+		setNotifications = setNotifications,
+		setKeybindList = setKeybindList,
+	}
+end
+
+---Open the menu settings popup under the header gear.
+---@param anchor GuiObject
+function Window:showSettingsPopup(anchor)
+	self:closePopups()
+
+	local popup = self.settingsPopup
+	local scale = self.scale.Scale
+	local rootPosition = self.root.AbsolutePosition
+	local anchorPosition = anchor.AbsolutePosition
+	local anchorSize = anchor.AbsoluteSize
+
+	local width = popup.Size.X.Offset
+	local x = (anchorPosition.X + anchorSize.X - rootPosition.X) / scale - width
+	local y = (anchorPosition.Y + anchorSize.Y - rootPosition.Y) / scale + 20
+
+	popup.Position = UDim2.fromOffset(math.clamp(x, 10, DESIGN_WIDTH - width - 10), y)
+	popup.Visible = true
+	self.bindUi.popup.Visible = false
+	self.rootLayer.Visible = true
+	self.activePopup = popup
+end
+
+---Recolour every accent coloured element in place.
+---@param accent Color3
+---@param accentLight Color3
+function Window:setAccent(accent, accentLight)
+	local oldAccent = Theme.accent
+	local oldLight = Theme.accentLight
+	Theme.accent = accent
+	Theme.accentLight = accentLight
+
+	local function swap(color)
+		if color == oldAccent then
+			return accent
+		elseif color == oldLight then
+			return accentLight
+		end
+		return nil
+	end
+
+	for _, descendant in ipairs(self.gui:GetDescendants()) do
+		if descendant:IsA("GuiObject") then
+			local replaced = swap(descendant.BackgroundColor3)
+			if replaced then
+				descendant.BackgroundColor3 = replaced
+			end
+		end
+
+		if descendant:IsA("TextLabel") or descendant:IsA("TextButton") or descendant:IsA("TextBox") then
+			local replaced = swap(descendant.TextColor3)
+			if replaced then
+				descendant.TextColor3 = replaced
+			end
+		elseif descendant:IsA("ImageLabel") or descendant:IsA("ImageButton") then
+			local replaced = swap(descendant.ImageColor3)
+			if replaced then
+				descendant.ImageColor3 = replaced
+			end
+		elseif descendant:IsA("UIStroke") then
+			local replaced = swap(descendant.Color)
+			if replaced then
+				descendant.Color = replaced
+			end
+		elseif descendant:IsA("UIGradient") then
+			local keypoints = descendant.Color.Keypoints
+			if keypoints[1].Value == oldAccent and keypoints[#keypoints].Value == oldLight then
+				descendant.Color = ColorSequence.new(accent, accentLight)
+			end
+		end
+	end
+end
+
+---Build the notification stack.
+function Window:buildNotifications()
+	self.notifyHolder = create("Frame", {
+		Name = "Notifications",
+		AnchorPoint = Vector2.new(1, 1),
+		Position = UDim2.fromOffset(DESIGN_WIDTH - 24, DESIGN_HEIGHT - 24),
+		Size = UDim2.fromOffset(380, 700),
+		BackgroundTransparency = 1,
+	}, self.root)
+
+	create("UIListLayout", {
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		VerticalAlignment = Enum.VerticalAlignment.Bottom,
+		Padding = UDim.new(0, 10),
+	}, self.notifyHolder)
+end
+
+---Show a notification card.
+---@param options table
+function Window:notify(options)
+	if self.hideNotifications then
+		return
+	end
+
+	self.notifyOrder = (self.notifyOrder or 0) + 1
+
+	local card = create("Frame", {
+		Name = "Notification",
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundColor3 = Theme.popupBackground,
+		LayoutOrder = self.notifyOrder,
+	}, self.notifyHolder)
+	round(card, 14)
+	outline(card, Theme.border)
+
+	create("UIPadding", {
+		PaddingLeft = UDim.new(0, 20),
+		PaddingRight = UDim.new(0, 20),
+		PaddingTop = UDim.new(0, 14),
+		PaddingBottom = UDim.new(0, 14),
+	}, card)
+	create("UIListLayout", {
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		Padding = UDim.new(0, 4),
+	}, card)
+
+	create("TextLabel", {
+		Size = UDim2.new(1, 0, 0, 24),
+		Text = options.Title or self.title,
+		Font = FONT_BOLD,
+		TextSize = 19,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		LayoutOrder = 1,
+	}, card)
+
+	create("TextLabel", {
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		Text = options.Text or "",
+		TextSize = 17,
+		TextColor3 = Theme.textMuted,
+		TextWrapped = true,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		LayoutOrder = 2,
+	}, card)
+
+	task.delay(options.Duration or 4, function()
+		if card.Parent then
+			card:Destroy()
+		end
+	end)
+end
+
 ---Open the keybind popup beside a gear icon.
 ---@param anchor GuiObject
 ---@param bind table
@@ -2341,6 +2702,8 @@ function Window:showBindPopup(anchor, bind, control)
 	y = math.clamp(y, 10, DESIGN_HEIGHT - height - 10)
 
 	ui.popup.Position = UDim2.fromOffset(x, y)
+	ui.popup.Visible = true
+	self.settingsPopup.Visible = false
 	self.rootLayer.Visible = true
 	self.activePopup = ui.popup
 end
@@ -2402,7 +2765,7 @@ function Window:refreshBinds()
 		end
 	end
 
-	self.bindList.Visible = count > 0
+	self.bindList.Visible = count > 0 and not self.hideKeybindList
 end
 
 ---Show or hide the window.
