@@ -508,6 +508,7 @@ end
 ---@param options table
 ---@return table
 function Section:addToggle(options)
+	local window = self.window
 	local row = self:createRow(67, options.Name)
 	local flag = options.Flag or options.Name
 	local callback = options.Callback
@@ -545,12 +546,21 @@ function Section:addToggle(options)
 	}, row)
 
 	local control = {}
+	local bind = {
+		Key = options.Keybind,
+		Mode = options.Mode == "Hold" and "Hold" or "Toggle",
+		ShowInBinds = options.ShowInBinds ~= false,
+	}
+	control.bind = bind
 
 	---@param newValue boolean
 	---@param silent boolean?
 	local function apply(newValue, silent)
 		value = newValue
 		Evenesce.Flags[flag] = value
+		if options.Gear then
+			window:refreshBinds()
+		end
 		tween(checkbox, 0.15, { BackgroundColor3 = value and Theme.accent or Theme.checkboxOff })
 		tween(check, 0.15, { ImageTransparency = value and 0 or 1 })
 		tween(label, 0.15, { TextColor3 = value and Theme.textPrimary or Theme.textDim })
@@ -572,7 +582,26 @@ function Section:addToggle(options)
 		})
 		bindHoverTint(gear, gear, Theme.textMuted, Theme.textPrimary)
 		gear.Activated:Connect(function()
+			window:showBindPopup(gear, bind, control)
 			fire(options.OnGear, value)
+		end)
+
+		window:registerBind(options.Name, bind, control)
+
+		-- Keybind handling: press flips the toggle, hold keeps it on while the key is down.
+		window:connect(userInputService.InputBegan, function(input, processed)
+			if processed or window.listening or window.bindCooldown then
+				return
+			end
+			if not bind.Key or input.KeyCode ~= bind.Key then
+				return
+			end
+			apply(bind.Mode == "Hold" and true or not value)
+		end)
+		window:connect(userInputService.InputEnded, function(input)
+			if bind.Mode == "Hold" and bind.Key and input.KeyCode == bind.Key then
+				apply(false)
+			end
 		end)
 	end
 
@@ -1292,6 +1321,9 @@ function Window.new(options)
 	self.activePage = nil
 	self.activePopup = nil
 	self.visible = true
+	self.binds = {}
+	self.listening = false
+	self.bindCooldown = false
 
 	self.gui = createScreenGui()
 	self.root = create("Frame", {
@@ -1316,6 +1348,8 @@ function Window.new(options)
 	self:buildSidebar()
 	self:buildTopbar()
 	self:buildOverlay()
+	self:buildBindPopup()
+	self:buildBindList()
 	self:buildMenuButton()
 
 	self:connect(userInputService.InputBegan, function(input, processed)
@@ -2069,6 +2103,9 @@ function Window:closePopups()
 	self.listPopup.Visible = false
 	self.colorPopup.Visible = false
 	self.overlay.Visible = false
+	self.rootLayer.Visible = false
+	self.listening = false
+	self.bindUi.bind = nil
 	self.activePopup = nil
 	self.listAnchor = nil
 	self.colorContext = nil
@@ -2078,6 +2115,294 @@ function Window:closePopups()
 		self.listClosed = nil
 		callback()
 	end
+end
+
+---Build the keybind settings popup shown by a toggle's gear icon.
+function Window:buildBindPopup()
+	local POPUP_WIDTH = 361
+	local POPUP_HEIGHT = 289
+
+	-- Lives on the root so it can extend past the window edge.
+	self.rootLayer = create("Frame", {
+		Name = "PopupLayer",
+		Size = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1,
+		Visible = false,
+		ZIndex = 100,
+	}, self.root)
+
+	local catcher = create("TextButton", {
+		Name = "Catcher",
+		Size = UDim2.fromScale(1, 1),
+		ZIndex = 100,
+	}, self.rootLayer)
+	catcher.Activated:Connect(function()
+		self:closePopups()
+	end)
+
+	local popup = create("Frame", {
+		Name = "BindPopup",
+		Size = UDim2.fromOffset(POPUP_WIDTH, POPUP_HEIGHT),
+		BackgroundColor3 = Theme.popupBackground,
+		ZIndex = 101,
+	}, self.rootLayer)
+	round(popup, 16)
+	outline(popup, Theme.border)
+
+	local keyBox = create("TextButton", {
+		Name = "KeyBox",
+		Position = UDim2.fromOffset(18, 18),
+		Size = UDim2.fromOffset(325, 58),
+		BackgroundTransparency = 0,
+		BackgroundColor3 = Theme.elementBackground,
+		ZIndex = 101,
+	}, popup)
+	round(keyBox, 12)
+
+	createIcon(keyBox, "circle-plus", 26, Theme.textPrimary, "ImageLabel", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromOffset(31, 29),
+		ZIndex = 102,
+	})
+
+	local keyLabel = create("TextLabel", {
+		Position = UDim2.fromOffset(58, 0),
+		Size = UDim2.new(1, -70, 1, 0),
+		TextSize = 20,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		ZIndex = 102,
+	}, keyBox)
+
+	local segment = create("Frame", {
+		Name = "Mode",
+		Position = UDim2.fromOffset(18, 94),
+		Size = UDim2.fromOffset(325, 43),
+		BackgroundColor3 = Theme.elementBackground,
+		ZIndex = 101,
+	}, popup)
+	round(segment, 10)
+
+	local function modeButton(text, xScale)
+		local button = create("TextButton", {
+			Name = text,
+			Position = UDim2.new(xScale, xScale == 0 and 3 or 1, 0, 3),
+			Size = UDim2.new(0.5, -4, 1, -6),
+			BackgroundTransparency = 1,
+			BackgroundColor3 = Color3.fromHex("#8b82ff"),
+			Text = text,
+			Font = FONT_MEDIUM,
+			TextSize = 19,
+			ZIndex = 102,
+		}, segment)
+		round(button, 8)
+		return button
+	end
+
+	local toggleMode = modeButton("Toggle", 0)
+	local holdMode = modeButton("Hold", 0.5)
+
+	create("Frame", {
+		Name = "Divider",
+		Position = UDim2.fromOffset(18, 158),
+		Size = UDim2.fromOffset(325, 1),
+		BackgroundColor3 = Theme.divider,
+		ZIndex = 101,
+	}, popup)
+
+	local function checkRow(text, centerY)
+		local label = create("TextLabel", {
+			AnchorPoint = Vector2.new(0, 0.5),
+			Position = UDim2.fromOffset(18, centerY),
+			Size = UDim2.fromOffset(220, 30),
+			Text = text,
+			TextSize = 19,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			ZIndex = 102,
+		}, popup)
+
+		local box = create("TextButton", {
+			AnchorPoint = Vector2.new(1, 0.5),
+			Position = UDim2.new(1, -18, 0, centerY),
+			Size = UDim2.fromOffset(31, 31),
+			BackgroundTransparency = 0,
+			BackgroundColor3 = Theme.checkboxOff,
+			ZIndex = 102,
+		}, popup)
+		round(box, 8)
+
+		local check = createIcon(box, "check", 21, Theme.textPrimary, "ImageLabel", {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.5, 0.5),
+			ZIndex = 103,
+		})
+
+		return function(on)
+			box.BackgroundColor3 = on and Theme.accent or Theme.checkboxOff
+			check.ImageTransparency = on and 0 or 1
+			label.TextColor3 = on and Theme.textPrimary or Theme.textMuted
+		end, box
+	end
+
+	local renderValue, valueBox = checkRow("Value", 191)
+	local renderBinds, bindsBox = checkRow("Show in binds", 249)
+
+	local ui = { popup = popup, bind = nil, control = nil }
+	self.bindUi = ui
+
+	function ui.render()
+		local bind = ui.bind
+		if not bind then
+			return
+		end
+
+		keyLabel.Text = self.listening and "..." or (bind.Key and bind.Key.Name or "None")
+		keyLabel.TextColor3 = self.listening and Theme.textMuted or Theme.textPrimary
+
+		local holding = bind.Mode == "Hold"
+		toggleMode.BackgroundTransparency = holding and 1 or 0
+		holdMode.BackgroundTransparency = holding and 0 or 1
+
+		renderValue(ui.control.get())
+		renderBinds(bind.ShowInBinds)
+	end
+
+	keyBox.Activated:Connect(function()
+		self.listening = true
+		ui.render()
+	end)
+
+	toggleMode.Activated:Connect(function()
+		ui.bind.Mode = "Toggle"
+		ui.render()
+	end)
+
+	holdMode.Activated:Connect(function()
+		ui.bind.Mode = "Hold"
+		ui.render()
+	end)
+
+	valueBox.Activated:Connect(function()
+		ui.control:set(not ui.control.get())
+		ui.render()
+	end)
+
+	bindsBox.Activated:Connect(function()
+		ui.bind.ShowInBinds = not ui.bind.ShowInBinds
+		ui.render()
+		self:refreshBinds()
+	end)
+
+	-- Capture the next key while the key box is listening.
+	self:connect(userInputService.InputBegan, function(input)
+		if not self.listening or input.UserInputType ~= Enum.UserInputType.Keyboard then
+			return
+		end
+
+		local bind = ui.bind
+		if bind then
+			bind.Key = input.KeyCode ~= Enum.KeyCode.Escape and input.KeyCode or nil
+		end
+
+		self.listening = false
+		self.bindCooldown = true
+		task.defer(function()
+			self.bindCooldown = false
+		end)
+		ui.render()
+		self:refreshBinds()
+	end)
+end
+
+---Open the keybind popup beside a gear icon.
+---@param anchor GuiObject
+---@param bind table
+---@param control table
+function Window:showBindPopup(anchor, bind, control)
+	self:closePopups()
+
+	local ui = self.bindUi
+	ui.bind = bind
+	ui.control = control
+	ui.render()
+
+	local scale = self.scale.Scale
+	local rootPosition = self.root.AbsolutePosition
+	local anchorPosition = anchor.AbsolutePosition
+	local anchorSize = anchor.AbsoluteSize
+	local width = ui.popup.Size.X.Offset
+	local height = ui.popup.Size.Y.Offset
+
+	local x = (anchorPosition.X + anchorSize.X - rootPosition.X) / scale + 14
+	if x + width > DESIGN_WIDTH - 10 then
+		x = (anchorPosition.X - rootPosition.X) / scale - width - 14
+	end
+
+	local y = (anchorPosition.Y + anchorSize.Y / 2 - rootPosition.Y) / scale - 12
+	y = math.clamp(y, 10, DESIGN_HEIGHT - height - 10)
+
+	ui.popup.Position = UDim2.fromOffset(x, y)
+	self.rootLayer.Visible = true
+	self.activePopup = ui.popup
+end
+
+---Register a toggle bind for the on-screen binds list.
+---@param name string
+---@param bind table
+---@param control table
+function Window:registerBind(name, bind, control)
+	table.insert(self.binds, { name = name, bind = bind, control = control })
+end
+
+---Build the on-screen list of active binds.
+function Window:buildBindList()
+	self.bindList = create("Frame", {
+		Name = "BindList",
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.fromOffset(925, 115),
+		Size = UDim2.fromOffset(0, 0),
+		AutomaticSize = Enum.AutomaticSize.XY,
+		BackgroundColor3 = Theme.watermarkBackground,
+		Visible = false,
+	}, self.root)
+	round(self.bindList, 14)
+	outline(self.bindList, Theme.border)
+
+	create("UIPadding", {
+		PaddingLeft = UDim.new(0, 20),
+		PaddingRight = UDim.new(0, 20),
+		PaddingTop = UDim.new(0, 12),
+		PaddingBottom = UDim.new(0, 12),
+	}, self.bindList)
+	create("UIListLayout", {
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		Padding = UDim.new(0, 6),
+	}, self.bindList)
+end
+
+---Rebuild the binds list from toggles that are on and set to show.
+function Window:refreshBinds()
+	for _, child in ipairs(self.bindList:GetChildren()) do
+		if child:IsA("TextLabel") then
+			child:Destroy()
+		end
+	end
+
+	local count = 0
+	for _, entry in ipairs(self.binds) do
+		if entry.bind.Key and entry.bind.ShowInBinds and entry.control.get() then
+			count = count + 1
+			create("TextLabel", {
+				Size = UDim2.fromOffset(0, 24),
+				AutomaticSize = Enum.AutomaticSize.X,
+				Text = string.format("%s  [%s]", entry.name, entry.bind.Key.Name),
+				TextSize = 18,
+				TextColor3 = Theme.textMuted,
+				LayoutOrder = count,
+			}, self.bindList)
+		end
+	end
+
+	self.bindList.Visible = count > 0
 end
 
 ---Show or hide the window.
